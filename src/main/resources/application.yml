@@ -1,0 +1,18 @@
+server:
+  port: 8080
+spring:
+  cloud:
+    config:
+      enabled: false
+  application:
+    name: plazoleta-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/restaurantes
+    username: root
+    password: Password
+  jpa:
+    hibernate:
+      ddl-auto: update
+usuarios:
+  service:
+    url: http://localhost:8081
