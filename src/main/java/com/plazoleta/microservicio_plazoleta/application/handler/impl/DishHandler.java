@@ -4,6 +4,7 @@ import com.plazoleta.microservicio_plazoleta.application.dto.request.DishRequest
 import com.plazoleta.microservicio_plazoleta.application.handler.IDishHandler;
 import com.plazoleta.microservicio_plazoleta.application.mapper.IDishMapper;
 import com.plazoleta.microservicio_plazoleta.domain.api.IDishServicePort;
+import com.plazoleta.microservicio_plazoleta.domain.model.Dish;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,5 +17,10 @@ public class DishHandler implements IDishHandler {
     @Override
     public void saveDish(DishRequestDto dishRequestDto) {
         dishServicePort.saveDish(dishMapper.toDish(dishRequestDto));
+    }
+
+    @Override
+    public void updateDish(Dish dishUpdate) {
+        dishServicePort.updateDish(dishUpdate);
     }
 }

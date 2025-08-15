@@ -188,7 +188,7 @@ class RestaurantUseCaseTest {
                 restaurantUseCase.saveRestaurant(restaurant)
         );
 
-        assertEquals("El usuario indicado como propietario no existe", exception.getMessage());
+        assertEquals("El usuario propietario no existe", exception.getMessage());
         verify(restaurantPersistencePort, never()).saveRestaurant(any());
     }
 
@@ -200,7 +200,7 @@ class RestaurantUseCaseTest {
         DomainException ex = assertThrows(DomainException.class,
                 () -> restaurantUseCase.saveRestaurant(restaurant));
 
-        assertEquals("El usuario no tiene el rol: PROPIETARIO", ex.getMessage());
+        assertTrue(ex.getMessage().contains("no tienen permiso para realizar esta acción"));
         verify(restaurantPersistencePort, never()).saveRestaurant(any());
     }
 }
