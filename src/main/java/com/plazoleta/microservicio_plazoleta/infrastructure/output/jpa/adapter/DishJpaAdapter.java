@@ -6,6 +6,8 @@ import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.mapper.ID
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.repository.IDishRepository;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 public class DishJpaAdapter implements IDishPersistencePort {
 
@@ -15,5 +17,16 @@ public class DishJpaAdapter implements IDishPersistencePort {
     @Override
     public void saveDish(Dish dish) {
         dishRepository.save(dishEntityMapper.toEntity(dish));
+    }
+
+    @Override
+    public void updateDish(Dish dish) {
+        dishRepository.save(dishEntityMapper.toEntity(dish));
+    }
+
+    @Override
+    public Optional<Dish> findDishById(Long dishId) {
+        return dishRepository.findById(dishId)
+                .map(dishEntityMapper::toDish);
     }
 }

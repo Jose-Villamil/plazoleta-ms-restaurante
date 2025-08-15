@@ -6,5 +6,5 @@ import java.util.Optional;
 
 public interface IRestaurantPersistencePort {
     void saveRestaurant(Restaurant restaurant);
-    Optional<Restaurant> getRestaurantById(Long id);
+    Optional<Restaurant> findRestaurantById(Long id);
 }
