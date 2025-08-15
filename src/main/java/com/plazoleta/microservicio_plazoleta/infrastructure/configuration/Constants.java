@@ -5,6 +5,7 @@ public class Constants {
 
     public static final String MESSAGE = "message";
     public static final String RESTAURANT_CREATED = "Restaurante creado correctamente.";
+    public static final String DISH_CREATED = "Plato creado correctamente.";
 
     //Errores
     public static final String ERROR_DUPLICATE_RECORD = "El registro ya existe o viola una restricción de integridad.";
