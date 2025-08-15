@@ -6,6 +6,8 @@ import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.mapper.IR
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.repository.IRestaurantRepository;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
 
@@ -15,5 +17,11 @@ public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
     @Override
     public void saveRestaurant(Restaurant restaurant) {
         restaurantRepository.save(restaurantEntityMapper.toEntity(restaurant));
+    }
+
+    @Override
+    public Optional<Restaurant> getRestaurantById(Long id) {
+        return restaurantRepository.findById(id)
+                .map(restaurantEntityMapper::toRestaurant);
     }
 }
