@@ -15,13 +15,13 @@ import java.util.Collections;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/restaurants")
+@RequestMapping("/api/v1/restaurants")
 @RequiredArgsConstructor
 public class RestaurantController {
 
     private final RestaurantHandler restaurantHandler;
 
-    @PostMapping
+    @PostMapping("saveRestaurant")
     public ResponseEntity<Map<String, String>> saveRestaurant( @RequestBody RestaurantRequestDto restaurant) {
         restaurantHandler.saveRestaurant(restaurant);
         return ResponseEntity.status(HttpStatus.CREATED)

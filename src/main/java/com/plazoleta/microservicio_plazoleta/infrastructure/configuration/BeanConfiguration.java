@@ -8,7 +8,7 @@ import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePo
 import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.usecase.DishUseCase;
 import com.plazoleta.microservicio_plazoleta.domain.usecase.RestaurantUseCase;
-import com.plazoleta.microservicio_plazoleta.infrastructure.configuration.security.DummyAuthServiceAdapter;
+import com.plazoleta.microservicio_plazoleta.infrastructure.configuration.security.JwtAuthServiceAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.adapter.UserFeignAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.client.IUserFeignClient;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.mapper.IUserFeignMapper;
@@ -60,8 +60,7 @@ public class BeanConfiguration {
 
     @Bean
     public IAuthServicePort authServicePort() {
-        // Implementación temporal hasta tener autenticación real
-        return new DummyAuthServiceAdapter();
+        return new JwtAuthServiceAdapter();
     }
 
 

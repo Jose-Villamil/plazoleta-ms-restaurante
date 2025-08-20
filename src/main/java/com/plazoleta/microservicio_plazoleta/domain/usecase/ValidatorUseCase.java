@@ -17,7 +17,7 @@ public class ValidatorUseCase {
         }
     }
 
-    public static void requireNonBlack(Object value, String fieldName){
+    public static void requireNonBlak(Object value, String fieldName){
         if(value == null ){
             throw new DomainException(fieldName);
         }

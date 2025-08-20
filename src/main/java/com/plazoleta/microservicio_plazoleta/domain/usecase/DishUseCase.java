@@ -54,8 +54,8 @@ public class DishUseCase implements IDishServicePort {
         requireNonNull(dish.getName(), String.format(FIELD_REQUIRED, "Nombre"));
         requireNonNull(dish.getDescription(), String.format(FIELD_REQUIRED, "Descripción"));
         requireNonNull(dish.getUrlImage(), String.format(FIELD_REQUIRED, "Url Imagen"));
-        requireNonBlack(dish.getCategoryId(), String.format(FIELD_REQUIRED, "Categoría"));
-        requireNonBlack(dish.getRestaurantId(), String.format(FIELD_REQUIRED, "Restaurante"));
+        requireNonBlak(dish.getCategoryId(), String.format(FIELD_REQUIRED, "Categoría"));
+        requireNonBlak(dish.getRestaurantId(), String.format(FIELD_REQUIRED, "Restaurante"));
         validatePositiveNumberInt(dish.getPrice(), String.format(FIELD_INVALID, "Precio"));
     }
 

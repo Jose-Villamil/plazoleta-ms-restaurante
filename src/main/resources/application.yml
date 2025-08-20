@@ -13,6 +13,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+security:
+  jwt:
+    secret: ${JWT_SECRET:clavesecretaparamicroserviciosdeplazoletadedecomidas}
+    expiration-minutes: 120
 usuarios:
   service:
     url: http://localhost:8081
