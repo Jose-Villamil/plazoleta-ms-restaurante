@@ -50,12 +50,26 @@ public class DishUseCase implements IDishServicePort {
         dishPersistencePort.updateDish(dishDb);
     }
 
+    @Override
+    public void setDishActive(Long dishId, boolean active) {
+
+        if (dishId == null || dishId <= 0) {
+            throw new DomainException("El id del plato es obligatorio");
+        }
+
+        Dish dishDb = dishPersistencePort.findDishById(dishId)
+                .orElseThrow(() -> new DomainException(DISH_NOT_FOUND));
+        validateOwnerAndRestaurant(dishDb.getRestaurantId());
+        dishDb.setActive(active);
+        dishPersistencePort.updateDish(dishDb);
+    }
+
     private static void validateDish(Dish dish) {
         requireNonNull(dish.getName(), String.format(FIELD_REQUIRED, "Nombre"));
         requireNonNull(dish.getDescription(), String.format(FIELD_REQUIRED, "Descripción"));
         requireNonNull(dish.getUrlImage(), String.format(FIELD_REQUIRED, "Url Imagen"));
-        requireNonBlack(dish.getCategoryId(), String.format(FIELD_REQUIRED, "Categoría"));
-        requireNonBlack(dish.getRestaurantId(), String.format(FIELD_REQUIRED, "Restaurante"));
+        requireNonBlak(dish.getCategoryId(), String.format(FIELD_REQUIRED, "Categoría"));
+        requireNonBlak(dish.getRestaurantId(), String.format(FIELD_REQUIRED, "Restaurante"));
         validatePositiveNumberInt(dish.getPrice(), String.format(FIELD_INVALID, "Precio"));
     }
 
@@ -65,7 +79,7 @@ public class DishUseCase implements IDishServicePort {
                 .orElseThrow(() -> new DomainException(OWNER_NOT_FOUND));
 
         if(!ROLE_OWNER.equalsIgnoreCase(owner.getRole().getName())){
-            throw new DomainException(USER_DOESNOT_HAVE_ROL + ROLE_OWNER);
+            throw new DomainException(String.format(USER_DOESNOT_HAVE_ROL, owner.getRole().getName()));
         }
         Restaurant restaurant = restaurantPersistencePort.findRestaurantById(restaurantId)
                 .orElseThrow(() -> new DomainException(RESTAURANT_NOT_FOUND));

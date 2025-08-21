@@ -14,19 +14,19 @@ import java.util.Map;
 import static com.plazoleta.microservicio_plazoleta.infrastructure.configuration.Constants.*;
 
 @RestController
-@RequestMapping("/api/dishes")
+@RequestMapping("/api/v1/dishes")
 @RequiredArgsConstructor
 public class DishController {
     private final DishHandler dishHandler;
 
-    @PostMapping
+    @PostMapping("saveDish")
     public ResponseEntity<Map<String, String>> saveDish(@RequestBody DishRequestDto dishRequestDto) {
         dishHandler.saveDish(dishRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Collections.singletonMap(MESSAGE, DISH_CREATED));
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("updateDish/{id}")
     public ResponseEntity<Map<String, String>> updateDish(@PathVariable Long id, @RequestBody DishRequestDto dishRequestDto) {
         Dish dishUpdate = new Dish();
         dishUpdate.setId(id);
@@ -36,4 +36,12 @@ public class DishController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Collections.singletonMap(MESSAGE, DISH_UPDATE));
     }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Map<String,String>> setDishActive( @PathVariable Long id, @RequestParam boolean active) {
+        dishHandler.setDishActive(id, active);
+        String msg = active ? "Plato habilitado" : "Plato deshabilitado";
+        return ResponseEntity.ok(Collections.singletonMap(MESSAGE, msg));
+    }
+
 }

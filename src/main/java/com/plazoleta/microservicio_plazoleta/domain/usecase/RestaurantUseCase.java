@@ -42,7 +42,7 @@ public class RestaurantUseCase implements IRestaurantServicePort {
         requireNonNull(restaurant.getAddress(),  String.format(FIELD_REQUIRED,"Dirección"));
         requireNonNull(restaurant.getPhone(), String.format(FIELD_REQUIRED,"Teléfono"));
         requireNonNull(restaurant.getUrlLogo(),  String.format(FIELD_REQUIRED,"Url Logo"));
-        requireNonBlack(restaurant.getIdOwner(), String.format(FIELD_REQUIRED,"Id Propietario"));
+        requireNonBlak(restaurant.getIdOwner(), String.format(FIELD_REQUIRED,"Id Propietario"));
         validatePattern(restaurant.getNit(), NUMERIC_PATTERN, String.format(FIELD_INVALID,"Nit"));
         validatePattern(restaurant.getPhone(), PHONE_PATTERN, String.format(FIELD_INVALID,"Teléfono"));
         validateNameNotOnlyNumbers(restaurant.getName());
