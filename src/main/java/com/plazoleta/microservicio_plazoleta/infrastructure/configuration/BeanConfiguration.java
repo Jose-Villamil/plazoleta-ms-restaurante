@@ -2,21 +2,27 @@ package com.plazoleta.microservicio_plazoleta.infrastructure.configuration;
 
 import com.plazoleta.microservicio_plazoleta.domain.api.IAuthServicePort;
 import com.plazoleta.microservicio_plazoleta.domain.api.IDishServicePort;
+import com.plazoleta.microservicio_plazoleta.domain.api.IRestaurantEmployeeServicePort;
 import com.plazoleta.microservicio_plazoleta.domain.api.IRestaurantServicePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IDishPersistencePort;
+import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantEmployeePersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.usecase.DishUseCase;
+import com.plazoleta.microservicio_plazoleta.domain.usecase.RestaurantEmployeeUseCase;
 import com.plazoleta.microservicio_plazoleta.domain.usecase.RestaurantUseCase;
 import com.plazoleta.microservicio_plazoleta.infrastructure.configuration.security.JwtAuthServiceAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.adapter.UserFeignAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.client.IUserFeignClient;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.mapper.IUserFeignMapper;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.adapter.DishJpaAdapter;
+import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.adapter.RestaurantEmployeeJpaAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.adapter.RestaurantJpaAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.mapper.IDishEntityMapper;
+import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.mapper.IRestaurantEntityEmployeeMapper;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.mapper.IRestaurantEntityMapper;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.repository.IDishRepository;
+import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.repository.IRestaurantEmployeeRepository;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.repository.IRestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +38,9 @@ public class BeanConfiguration {
     private final IUserFeignMapper userFeignMapper;
     private final IDishRepository dishRepository;
     private final IDishEntityMapper dishEntityMapper;
+
+    private final IRestaurantEmployeeRepository  restaurantEmployeeRepository;
+    private final IRestaurantEntityEmployeeMapper restaurantEmployeeMapper;
 
     @Bean
     public IRestaurantServicePort restaurantService() {
@@ -61,6 +70,15 @@ public class BeanConfiguration {
     @Bean
     public IAuthServicePort authServicePort() {
         return new JwtAuthServiceAdapter();
+    }
+
+    @Bean
+    public IRestaurantEmployeeServicePort restaurantEmployeeServicePort(){
+        return new RestaurantEmployeeUseCase(restaurantEmployeePersistencePort());
+    }
+    @Bean
+    public IRestaurantEmployeePersistencePort restaurantEmployeePersistencePort(){
+        return new RestaurantEmployeeJpaAdapter(restaurantEmployeeRepository, restaurantEmployeeMapper);
     }
 
 
