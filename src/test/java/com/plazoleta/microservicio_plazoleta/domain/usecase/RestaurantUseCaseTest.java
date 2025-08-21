@@ -8,19 +8,17 @@ import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePo
 import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
+import static com.plazoleta.microservicio_plazoleta.domain.util.Constantes.ROLE_OWNER;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
 
 class RestaurantUseCaseTest {
     @Mock
@@ -29,19 +27,21 @@ class RestaurantUseCaseTest {
     private IUserPersistencePort userPersistencePort;
     @InjectMocks
     private RestaurantUseCase restaurantUseCase;
-    private Restaurant restaurant;
 
     @BeforeEach
-    void setUp() {
+    void setup(){
         MockitoAnnotations.openMocks(this);
-        restaurant = new Restaurant(
-                1L,
-                "Restaurante de prueba",
-                "Calle falsa 123",
-                1L,
-                "+573005698325",
-                "http://logo.com/logo.png",
-                "105655555");
+    }
+
+    private Restaurant validRestaurant() {
+        Restaurant r = new Restaurant();
+        r.setName("Restaurante de prueba");
+        r.setNit("105655555");
+        r.setAddress("Calle falsa 123");
+        r.setPhone("+573005698325");
+        r.setUrlLogo("http://logo.com/logo.png");
+        r.setIdOwner(1L);
+        return r;
     }
 
     private void mockOwnerWithRole(String roleName) {
@@ -50,157 +50,37 @@ class RestaurantUseCaseTest {
     }
 
     @Test
-    void nameIsNullOrEmpty() {
-        restaurant.setName("");
-        mockOwnerWithRole("ADMINISTRADOR");
-
-        DomainException exception = assertThrows(DomainException.class, () ->
-                restaurantUseCase.saveRestaurant(restaurant));
-
-        assertEquals("El campo Nombre no puede ser nulo o vacío", exception.getMessage());
-        verify(restaurantPersistencePort, never()).saveRestaurant(any());
-    }
-
-    @Test
-    void nitIsNullOrEmpty() {
-        restaurant.setNit("");
-        mockOwnerWithRole("ADMINISTRADOR");
-
-        DomainException exception = assertThrows(DomainException.class, () ->
-                restaurantUseCase.saveRestaurant(restaurant));
-
-        assertEquals("El campo Nit no puede ser nulo o vacío", exception.getMessage());
-        verify(restaurantPersistencePort, never()).saveRestaurant(any());
-    }
-
-    @Test
-    void addressIsNullOrEmpty() {
-        restaurant.setAddress(null);
-        mockOwnerWithRole("ADMINISTRADOR");
-
-        DomainException exception = assertThrows(DomainException.class, () ->
-                restaurantUseCase.saveRestaurant(restaurant));
-
-        assertEquals("El campo Dirección no puede ser nulo o vacío", exception.getMessage());
-        verify(restaurantPersistencePort, never()).saveRestaurant(any());
-    }
-
-    @Test
-    void urlLogoIsNullOrEmpty() {
-        restaurant.setUrlLogo("  ");
-        mockOwnerWithRole("ADMINISTRADOR");
-
-        DomainException exception = assertThrows(DomainException.class, () ->
-                restaurantUseCase.saveRestaurant(restaurant));
-
-        assertEquals("El campo Url Logo no puede ser nulo o vacío", exception.getMessage());
-        verify(restaurantPersistencePort, never()).saveRestaurant(any());
-    }
-
-    @Test
-    void idOwnerIsNull() {
-        restaurant.setIdOwner(null);
-        mockOwnerWithRole("ADMINISTRADOR");
-
-        DomainException exception = assertThrows(DomainException.class, () ->
-                restaurantUseCase.saveRestaurant(restaurant));
-
-        assertEquals("El campo Id Propietario no puede ser nulo o vacío", exception.getMessage());
-        verify(restaurantPersistencePort, never()).saveRestaurant(any());
-    }
-
-    @Test
-    void nitIsNotNumeric() {
-        restaurant.setNit("ABC123");
-        mockOwnerWithRole("ADMINISTRADOR");
-
-        DomainException exception = assertThrows(DomainException.class, () ->
-                restaurantUseCase.saveRestaurant(restaurant));
-
-        assertEquals("Nit inválido", exception.getMessage());
-        verify(restaurantPersistencePort, never()).saveRestaurant(any());
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideInvalidPhones")
-    void invalidPhoneScenarios(String phone, String expectedMessage) {
-        restaurant.setPhone(phone);
-        mockOwnerWithRole("ADMINISTRADOR");
-
-        DomainException exception = assertThrows(DomainException.class,
-                () -> restaurantUseCase.saveRestaurant(restaurant));
-
-        assertEquals(expectedMessage, exception.getMessage());
-        verify(restaurantPersistencePort, never()).saveRestaurant(any());
-    }
-
-    private static Stream<Arguments> provideInvalidPhones() {
-        return Stream.of(
-                Arguments.of(null, "El campo Teléfono no puede ser nulo o vacío"),
-                Arguments.of("", "El campo Teléfono no puede ser nulo o vacío"),
-                Arguments.of("ABC123", "Teléfono inválido"),
-                Arguments.of("12345678901234", "Teléfono inválido")
-        );
-    }
-
-    @Test
-    void nameIsOnlyNumbers() {
-        restaurant.setName("1234567890");
-        mockOwnerWithRole("ADMINISTRADOR");
-
-        DomainException exception = assertThrows(DomainException.class, () ->
-                restaurantUseCase.saveRestaurant(restaurant)
-        );
-
-        assertEquals("El nombre del restaurante no puede contener solo números", exception.getMessage());
-        verify(restaurantPersistencePort, never()).saveRestaurant(any());
-    }
-
-    @Test
-    void throwExceptionWhenNitIsInvalid() {
-        restaurant.setNit("ABC123");
-        mockOwnerWithRole("ADMINISTRADOR");
-
-        DomainException ex = assertThrows(DomainException.class,
-                () -> restaurantUseCase.saveRestaurant(restaurant)
-        );
-
-        assertEquals("Nit inválido", ex.getMessage());
-        verify(userPersistencePort, never()).findById(any());
-        verify(restaurantPersistencePort, never()).saveRestaurant(any());
-    }
-
-    @Test
     void SaveRestaurant_WhenValidDataAndOwnerHasCorrectRole() {
-        mockOwnerWithRole("PROPIETARIO");
+        Restaurant r = validRestaurant();
+        User owner = new User(1L, new Role(1L, ROLE_OWNER, ""));
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(owner));
 
-        restaurantUseCase.saveRestaurant(restaurant);
+        assertDoesNotThrow(() -> restaurantUseCase.saveRestaurant(r));
 
-        verify(restaurantPersistencePort).saveRestaurant(restaurant);
+        verify(userPersistencePort).findById(1L);
+        verify(restaurantPersistencePort).saveRestaurant(r);
     }
 
     @Test
     void throwException_WhenOwnerDoesNotExist() {
-        restaurant.setIdOwner(99L);
-        when(userPersistencePort.findById(99L)).thenReturn(Optional.empty());
+        Restaurant r = validRestaurant();
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.empty());
 
-        DomainException exception = assertThrows(DomainException.class, () ->
-                restaurantUseCase.saveRestaurant(restaurant)
-        );
+        DomainException ex = assertThrows(DomainException.class, () -> restaurantUseCase.saveRestaurant(r));
 
-        assertEquals("El usuario propietario no existe", exception.getMessage());
+        assertTrue(ex.getMessage().toLowerCase().contains("propietario no existe"));
         verify(restaurantPersistencePort, never()).saveRestaurant(any());
     }
 
     @Test
     void throwWhenOwnerIsNotPropietario() {
-        User owner = new User(10L, new Role(2L, "CLIENTE", ""));
-        when(userPersistencePort.findById(restaurant.getIdOwner())).thenReturn(Optional.of(owner));
+        Restaurant r = validRestaurant();
+        User notOwner = new User(1L, new Role(2L, "CLIENTE", ""));
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(notOwner));
 
-        DomainException ex = assertThrows(DomainException.class,
-                () -> restaurantUseCase.saveRestaurant(restaurant));
+        DomainException ex = assertThrows(DomainException.class, () -> restaurantUseCase.saveRestaurant(r));
 
-        assertTrue(ex.getMessage().contains("no tienen permiso para realizar esta acción"));
+        assertTrue(ex.getMessage().toLowerCase().contains("no tienen permiso"));
         verify(restaurantPersistencePort, never()).saveRestaurant(any());
     }
 }

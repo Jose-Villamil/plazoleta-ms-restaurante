@@ -10,8 +10,6 @@ import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
 import static com.plazoleta.microservicio_plazoleta.domain.usecase.ValidatorUseCase.*;
 import static com.plazoleta.microservicio_plazoleta.domain.util.Constantes.*;
 import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.*;
-import static com.plazoleta.microservicio_plazoleta.domain.util.ValidationPatterns.NUMERIC_PATTERN;
-import static com.plazoleta.microservicio_plazoleta.domain.util.ValidationPatterns.PHONE_PATTERN;
 
 public class RestaurantUseCase implements IRestaurantServicePort {
 
@@ -36,15 +34,4 @@ public class RestaurantUseCase implements IRestaurantServicePort {
         restaurantPersistencePort.saveRestaurant(restaurant);
     }
 
-    public static void validateRestaurant(Restaurant restaurant) {
-        requireNonNull(restaurant.getName(), String.format(FIELD_REQUIRED,"Nombre"));
-        requireNonNull(restaurant.getNit(), String.format(FIELD_REQUIRED,"Nit"));
-        requireNonNull(restaurant.getAddress(),  String.format(FIELD_REQUIRED,"Dirección"));
-        requireNonNull(restaurant.getPhone(), String.format(FIELD_REQUIRED,"Teléfono"));
-        requireNonNull(restaurant.getUrlLogo(),  String.format(FIELD_REQUIRED,"Url Logo"));
-        requireNonBlak(restaurant.getIdOwner(), String.format(FIELD_REQUIRED,"Id Propietario"));
-        validatePattern(restaurant.getNit(), NUMERIC_PATTERN, String.format(FIELD_INVALID,"Nit"));
-        validatePattern(restaurant.getPhone(), PHONE_PATTERN, String.format(FIELD_INVALID,"Teléfono"));
-        validateNameNotOnlyNumbers(restaurant.getName());
-    }
 }

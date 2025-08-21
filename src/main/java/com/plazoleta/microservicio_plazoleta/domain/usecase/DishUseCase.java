@@ -64,15 +64,6 @@ public class DishUseCase implements IDishServicePort {
         dishPersistencePort.updateDish(dishDb);
     }
 
-    private static void validateDish(Dish dish) {
-        requireNonNull(dish.getName(), String.format(FIELD_REQUIRED, "Nombre"));
-        requireNonNull(dish.getDescription(), String.format(FIELD_REQUIRED, "Descripción"));
-        requireNonNull(dish.getUrlImage(), String.format(FIELD_REQUIRED, "Url Imagen"));
-        requireNonBlak(dish.getCategoryId(), String.format(FIELD_REQUIRED, "Categoría"));
-        requireNonBlak(dish.getRestaurantId(), String.format(FIELD_REQUIRED, "Restaurante"));
-        validatePositiveNumberInt(dish.getPrice(), String.format(FIELD_INVALID, "Precio"));
-    }
-
     private void validateOwnerAndRestaurant(Long restaurantId) {
         Long ownerId = authServicePort.getAuthenticatedUserId();
         User owner = userPersistencePort.findById(ownerId)
