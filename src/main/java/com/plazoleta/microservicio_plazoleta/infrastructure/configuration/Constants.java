@@ -3,6 +3,7 @@ package com.plazoleta.microservicio_plazoleta.infrastructure.configuration;
 public class Constants {
     private Constants() {}
 
+
     public static final String MESSAGE = "message";
     public static final String RESTAURANT_CREATED = "Restaurante creado correctamente.";
     public static final String DISH_CREATED = "Plato creado correctamente.";

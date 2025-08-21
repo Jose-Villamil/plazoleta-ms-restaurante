@@ -15,6 +15,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static com.plazoleta.microservicio_plazoleta.domain.util.Constantes.*;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -32,10 +34,12 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(reg -> reg
                         .requestMatchers("/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/restaurants/saveRestaurant").hasRole("ADMINISTRADOR")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/dishes/saveDish").hasRole("PROPIETARIO")
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/dishes/updateDish/**").hasRole("PROPIETARIO")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/restaurantEmployee/saveRestaurantEmployee").hasRole("PROPIETARIO")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/restaurants/saveRestaurant").hasRole(ROLE_ADMIN)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/dishes/saveDish").hasRole(ROLE_OWNER)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/dishes/updateDish/**").hasRole(ROLE_OWNER)
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/dishes/{id}/status").hasRole(ROLE_OWNER)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/restaurantEmployee/saveRestaurantEmployee").hasRole(ROLE_OWNER)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/restaurants").hasAnyRole(ROLE_CLIENT)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e.authenticationEntryPoint(entryPoint).accessDeniedHandler(accessDenied))

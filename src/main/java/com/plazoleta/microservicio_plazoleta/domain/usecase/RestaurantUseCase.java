@@ -6,6 +6,7 @@ import com.plazoleta.microservicio_plazoleta.domain.model.Restaurant;
 import com.plazoleta.microservicio_plazoleta.domain.model.User;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
+import com.plazoleta.microservicio_plazoleta.domain.util.PageResult;
 
 import static com.plazoleta.microservicio_plazoleta.domain.usecase.ValidatorUseCase.*;
 import static com.plazoleta.microservicio_plazoleta.domain.util.Constantes.*;
@@ -32,6 +33,13 @@ public class RestaurantUseCase implements IRestaurantServicePort {
         }
 
         restaurantPersistencePort.saveRestaurant(restaurant);
+    }
+
+    @Override
+    public PageResult<Restaurant> listRestaurants(int page, int size) {
+        if (size <= 0) size = 10;
+        if (page < 0) page = 0;
+        return restaurantPersistencePort.findAllOrderByNameAsc(page, size);
     }
 
 }

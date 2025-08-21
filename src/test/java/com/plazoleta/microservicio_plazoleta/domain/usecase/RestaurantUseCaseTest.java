@@ -6,11 +6,11 @@ import com.plazoleta.microservicio_plazoleta.domain.model.Role;
 import com.plazoleta.microservicio_plazoleta.domain.model.User;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-
+@ExtendWith(MockitoExtension.class)
 class RestaurantUseCaseTest {
     @Mock
     private IRestaurantPersistencePort restaurantPersistencePort;
@@ -27,11 +27,6 @@ class RestaurantUseCaseTest {
     private IUserPersistencePort userPersistencePort;
     @InjectMocks
     private RestaurantUseCase restaurantUseCase;
-
-    @BeforeEach
-    void setup(){
-        MockitoAnnotations.openMocks(this);
-    }
 
     private Restaurant validRestaurant() {
         Restaurant r = new Restaurant();
@@ -42,11 +37,6 @@ class RestaurantUseCaseTest {
         r.setUrlLogo("http://logo.com/logo.png");
         r.setIdOwner(1L);
         return r;
-    }
-
-    private void mockOwnerWithRole(String roleName) {
-        User owner = new User(1L, new Role(1L, roleName, ""));
-        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(owner));
     }
 
     @Test
