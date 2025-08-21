@@ -54,6 +54,7 @@ class DishUseCaseTest {
     }
 
     private void mockAuthenticatedOwner(String roleName, Long ownerId) {
+
         when(authServicePort.getAuthenticatedUserId()).thenReturn(ownerId);
         when(userPersistencePort.findById(ownerId))
                 .thenReturn(Optional.of(new User(ownerId, new Role(1L, roleName, ""))));
@@ -163,7 +164,7 @@ class DishUseCaseTest {
         mockRestaurant(1L, 1L);
 
         DomainException ex = assertThrows(DomainException.class, () -> dishUseCase.saveDish(dish));
-        assertTrue(ex.getMessage().contains(ROLE_OWNER));
+        assertTrue(ex.getMessage().contains(ROLE_CLIENT));
         verify(dishPersistencePort, never()).saveDish(any());
     }
 
@@ -245,7 +246,7 @@ class DishUseCaseTest {
     @Test
     void updateDishUserNotOwnerOfRestaurant() {
         when(dishPersistencePort.findDishById(1L)).thenReturn(Optional.of(dish));
-
+        mockAuthenticatedOwner(ROLE_OWNER, 1L);
         Long ownerId = 99L;
         when(authServicePort.getAuthenticatedUserId()).thenReturn(ownerId);
         when(userPersistencePort.findById(ownerId))
@@ -253,16 +254,92 @@ class DishUseCaseTest {
         when(restaurantPersistencePort.findRestaurantById(dish.getRestaurantId()))
                 .thenReturn(Optional.of(new Restaurant(dish.getRestaurantId(), "Rest", "Addr",
                         77L, "123456", "logo.png", "99999")));
-
-        Dish updateRequest = new Dish();
-        updateRequest.setId(1L);
-        updateRequest.setDescription("Nueva desc");
-        updateRequest.setPrice(2300);
-
+        dish.setId(1L);
         DomainException ex = assertThrows(DomainException.class,
-                () -> dishUseCase.updateDish(updateRequest));
+                () -> dishUseCase.updateDish(dish));
 
         assertEquals(NOT_OWNER_RESTAURANT, ex.getMessage());
         verify(dishPersistencePort, never()).updateDish(any());
     }
+
+    @Test
+    void setDishActive_whenDishIdIsNullOrNonPositive_throwsDomainException() {
+        DomainException ex1 = assertThrows(DomainException.class,
+                () -> dishUseCase.setDishActive(null, true));
+        assertTrue(ex1.getMessage().toLowerCase().contains("id del plato"));
+
+        DomainException ex2 = assertThrows(DomainException.class,
+                () -> dishUseCase.setDishActive(0L, true));
+        assertTrue(ex2.getMessage().toLowerCase().contains("id del plato"));
+
+        verify(dishPersistencePort, never()).updateDish(any());
+    }
+
+    @Test
+    void setDishActive_whenDishNotFound_throwsDomainException() {
+        when(dishPersistencePort.findDishById(999L)).thenReturn(Optional.empty());
+
+        DomainException ex = assertThrows(DomainException.class,
+                () -> dishUseCase.setDishActive(999L, true));
+
+        assertEquals(DISH_NOT_FOUND, ex.getMessage());
+        verify(dishPersistencePort, never()).updateDish(any());
+    }
+
+    @Test
+    void setDishActive_whenCallerIsNotOwner_throwsDomainException() {
+        dish.setId(55L);
+        when(dishPersistencePort.findDishById(55L)).thenReturn(Optional.of(dish));
+        mockAuthenticatedOwner(ROLE_CLIENT, 7L);
+        DomainException ex = assertThrows(DomainException.class,
+                () -> dishUseCase.setDishActive(55L, true));
+
+        assertTrue(ex.getMessage().contains(ROLE_CLIENT));
+        verify(dishPersistencePort, never()).updateDish(any());
+    }
+
+    @Test
+    void setDishActive_whenOwnerDoesNotOwnRestaurant_throwsDomainException() {
+        dish.setId(55L);
+        dish.setRestaurantId(10L);
+        when(dishPersistencePort.findDishById(55L)).thenReturn(Optional.of(dish));
+
+        Long ownerId = 5L;
+        when(authServicePort.getAuthenticatedUserId()).thenReturn(ownerId);
+        when(userPersistencePort.findById(ownerId))
+                .thenReturn(Optional.of(new User(ownerId, new Role(1L, ROLE_OWNER, ""))));
+
+        Restaurant restaurant = new Restaurant();
+        restaurant.setId(10L);
+        restaurant.setIdOwner(99L);
+        when(restaurantPersistencePort.findRestaurantById(10L)).thenReturn(Optional.of(restaurant));
+
+        DomainException ex = assertThrows(DomainException.class,
+                () -> dishUseCase.setDishActive(55L, true));
+
+        assertEquals(NOT_OWNER_RESTAURANT, ex.getMessage());
+        verify(dishPersistencePort, never()).updateDish(any());
+    }
+
+
+    @Test
+    void setDishActive_happyPath_enable_callsUpdateWithActiveTrue() {
+        dish.setId(55L);
+        when(dishPersistencePort.findDishById(55L)).thenReturn(Optional.of(dish));
+        mockAuthenticatedOwner(ROLE_OWNER, 5L);
+        dishUseCase.setDishActive(55L, true);
+        assertTrue(dish.isActive());
+        verify(dishPersistencePort).updateDish(dish);
+    }
+
+    @Test
+    void setDishActive_happyPath_disable_callsUpdateWithActiveFalse() {
+        dish.setId(66L);
+        when(dishPersistencePort.findDishById(66L)).thenReturn(Optional.of(dish));
+        mockAuthenticatedOwner(ROLE_OWNER, 8L);
+        dishUseCase.setDishActive(66L, false);
+        assertFalse(dish.isActive());
+        verify(dishPersistencePort).updateDish(dish);
+    }
+
 }

@@ -36,4 +36,12 @@ public class DishController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Collections.singletonMap(MESSAGE, DISH_UPDATE));
     }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Map<String,String>> setDishActive( @PathVariable Long id, @RequestParam boolean active) {
+        dishHandler.setDishActive(id, active);
+        String msg = active ? "Plato habilitado" : "Plato deshabilitado";
+        return ResponseEntity.ok(Collections.singletonMap(MESSAGE, msg));
+    }
+
 }

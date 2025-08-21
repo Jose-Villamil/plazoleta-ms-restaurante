@@ -23,4 +23,10 @@ public class DishHandler implements IDishHandler {
     public void updateDish(Dish dishUpdate) {
         dishServicePort.updateDish(dishUpdate);
     }
+
+    @Override
+    public void setDishActive(Long dishId, boolean active) {
+        dishServicePort.setDishActive(dishId, active);
+    }
+
 }
