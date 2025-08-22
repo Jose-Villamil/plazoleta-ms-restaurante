@@ -2,6 +2,7 @@ package com.plazoleta.microservicio_plazoleta.application.handler.impl;
 
 import com.plazoleta.microservicio_plazoleta.application.dto.request.CreateOrderRequestDto;
 import com.plazoleta.microservicio_plazoleta.application.dto.response.CreateOrderResponseDto;
+import com.plazoleta.microservicio_plazoleta.application.handler.IOrderHandler;
 import com.plazoleta.microservicio_plazoleta.application.mapper.IOrderRequestMapper;
 import com.plazoleta.microservicio_plazoleta.application.mapper.IOrderResponseMapper;
 import com.plazoleta.microservicio_plazoleta.domain.api.IOrderServicePort;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class OrderHandler {
+public class OrderHandler implements IOrderHandler {
 
     private final IOrderServicePort service;
     private final IOrderRequestMapper reqMapper;

@@ -1,7 +1,6 @@
 package com.plazoleta.microservicio_plazoleta.infrastructure.input.rest;
 
 import com.plazoleta.microservicio_plazoleta.application.dto.request.RestaurantEmployeeRequestDto;
-import com.plazoleta.microservicio_plazoleta.application.dto.request.RestaurantRequestDto;
 import com.plazoleta.microservicio_plazoleta.application.handler.impl.RestaurantEmployeHandler;
 import com.plazoleta.microservicio_plazoleta.infrastructure.configuration.Constants;
 import lombok.RequiredArgsConstructor;

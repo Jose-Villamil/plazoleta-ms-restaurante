@@ -24,7 +24,7 @@ import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.*
         import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class DishUseCaseActiveDesactiveDishTest {
+class DishUseCaseActiveDesactiveDishTest {
 
     @Mock private IDishPersistencePort dishPersistencePort;
     @Mock private IAuthServicePort authServicePort;

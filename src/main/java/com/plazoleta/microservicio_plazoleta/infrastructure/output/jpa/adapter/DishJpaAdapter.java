@@ -12,7 +12,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class DishJpaAdapter implements IDishPersistencePort {
@@ -34,6 +37,13 @@ public class DishJpaAdapter implements IDishPersistencePort {
     public Optional<Dish> findDishById(Long dishId) {
         return dishRepository.findById(dishId)
                 .map(dishEntityMapper::toDish);
+    }
+
+    @Override
+    public Map<Long, Dish> findByIds(Collection<Long> ids) {
+        return dishRepository.findAllById(ids).stream()
+                .map(dishEntityMapper::toDish)
+                .collect(Collectors.toMap(Dish::getId, d -> d));
     }
 
     @Override

@@ -9,11 +9,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class DishListItemResponseDto {
-    private Long id;
+public class OrderItemResponseDto {
+    private Long dishId;
     private String name;
-    private int price;
     private String description;
-    private String urlImage;
-    private Long categoryId;
+    private int quantity;
 }

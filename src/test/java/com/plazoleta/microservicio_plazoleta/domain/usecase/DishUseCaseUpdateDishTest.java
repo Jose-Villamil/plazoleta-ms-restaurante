@@ -1,6 +1,5 @@
 package com.plazoleta.microservicio_plazoleta.domain.usecase;
 
-
 import com.plazoleta.microservicio_plazoleta.domain.api.IAuthServicePort;
 import com.plazoleta.microservicio_plazoleta.domain.exception.DomainException;
 import com.plazoleta.microservicio_plazoleta.domain.model.Dish;
@@ -10,7 +9,6 @@ import com.plazoleta.microservicio_plazoleta.domain.model.User;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IDishPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
-import com.plazoleta.microservicio_plazoleta.domain.usecase.DishUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +24,7 @@ import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.*
         import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class DishUseCaseUpdateDishTest {
+class DishUseCaseUpdateDishTest {
 
     @Mock private IDishPersistencePort dishPersistencePort;
     @Mock private IAuthServicePort authServicePort;

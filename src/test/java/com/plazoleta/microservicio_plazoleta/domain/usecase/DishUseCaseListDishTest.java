@@ -1,11 +1,7 @@
 package com.plazoleta.microservicio_plazoleta.domain.usecase;
 
-import com.plazoleta.microservicio_plazoleta.domain.api.IAuthServicePort;
 import com.plazoleta.microservicio_plazoleta.domain.exception.DomainException;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IDishPersistencePort;
-import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePort;
-import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

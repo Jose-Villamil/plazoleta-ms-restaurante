@@ -14,12 +14,13 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
-
+    private Logger log = Logger.getLogger(JwtAuthFilter.class.getName());
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws ServletException, IOException {
@@ -36,10 +37,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         .map(SimpleGrantedAuthority::new).toList();
 
                 var auth = new UsernamePasswordAuthenticationToken(email, null, roles);
-                // guardamos el uid por si el dominio lo necesita
                 auth.setDetails(Map.of("uid", claims.get("uid")));
                 SecurityContextHolder.getContext().setAuthentication(auth);
-            } catch (Exception ignored) { }
+            } catch (Exception ex) {
+                log.info(ex.getMessage());
+            }
         }
         chain.doFilter(req, res);
     }

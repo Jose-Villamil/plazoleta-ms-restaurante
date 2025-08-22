@@ -2,10 +2,7 @@ package com.plazoleta.microservicio_plazoleta.infrastructure.configuration;
 
 import com.plazoleta.microservicio_plazoleta.domain.api.*;
 import com.plazoleta.microservicio_plazoleta.domain.spi.*;
-import com.plazoleta.microservicio_plazoleta.domain.usecase.DishUseCase;
-import com.plazoleta.microservicio_plazoleta.domain.usecase.OrderUseCase;
-import com.plazoleta.microservicio_plazoleta.domain.usecase.RestaurantEmployeeUseCase;
-import com.plazoleta.microservicio_plazoleta.domain.usecase.RestaurantUseCase;
+import com.plazoleta.microservicio_plazoleta.domain.usecase.*;
 import com.plazoleta.microservicio_plazoleta.infrastructure.configuration.security.JwtAuthServiceAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.adapter.UserFeignAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.client.IUserFeignClient;
@@ -90,5 +87,10 @@ public class BeanConfiguration {
     @Bean
     public IOrderPersistencePort orderPersistencePort() {
         return new OrderJpaAdapter(orderRepository, orderEntityMapper);
+    }
+
+    @Bean
+    public IEmployeeOrderServicePort employeeOrderQueryService() {
+        return new EmployeeOrderUseCase(authServicePort(), restaurantEmployeePersistencePort(), orderPersistencePort());
     }
 }
