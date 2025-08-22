@@ -13,13 +13,3 @@ public interface IDishMapper {
     Dish toDish(DishRequestDto dishRequestDto);
     DishResponseDto toDishResponse(Dish dish);
 }
-
-/*    @Mapping(target = "categoryId", source = "categoryId")
-    Dish toDish(DishRequestDto dishRequestDto);
-
-    @Mapping(target = "category.id", source = "categoryId")
-    DishListItemResponseDto toItem(Dish dish);
-    default PageResponse<DishListItemResponseDto> toPage(PageResult<Dish> page) {
-        var items = page.getItems().stream().map(this::toItem).toList();
-        return new PageResponse<>(items, page.getPage(), page.getSize(), page.getTotalElements(), page.getTotalPages());
-    }*/

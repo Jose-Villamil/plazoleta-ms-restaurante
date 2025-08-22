@@ -12,19 +12,3 @@ public interface IDishEntityMapper {
     Dish toDish(DishEntity dishEntity);
     DishEntity toEntity(Dish dish);
 }
-
-/*    // Entity -> Domain
-    @Mapping(target = "categoryId", source = "category.id")
-    Dish toDish(DishEntity entity);
-
-    // Domain -> Entity
-    @Mapping(target = "category", expression = "java(toCategoryRef(dish.getCategoryId()))")
-    DishEntity toEntity(Dish dish);
-
-    // helper
-    default CategoryEntity toCategoryRef(Long id) {
-        if (id == null) return null;
-        CategoryEntity c = new CategoryEntity();
-        c.setId(id);
-        return c;
-    }*/
