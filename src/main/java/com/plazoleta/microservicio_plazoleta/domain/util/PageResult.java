@@ -1,13 +1,15 @@
 package com.plazoleta.microservicio_plazoleta.domain.util;
 
+import java.util.List;
+
 public class PageResult<T> {
-    private final java.util.List<T> items;
+    private final List<T> items;
     private final int page;
     private final int size;
     private final long totalElements;
     private final int totalPages;
 
-    public PageResult(java.util.List<T> items, int page, int size, long totalElements, int totalPages) {
+    public PageResult(List<T> items, int page, int size, long totalElements, int totalPages) {
         this.items = items;
         this.page = page;
         this.size = size;
@@ -15,7 +17,7 @@ public class PageResult<T> {
         this.totalPages = totalPages;
     }
 
-    public java.util.List<T> getItems() { return items; }
+    public List<T> getItems() { return items; }
     public int getPage() { return page; }
     public int getSize() { return size; }
     public long getTotalElements() { return totalElements; }

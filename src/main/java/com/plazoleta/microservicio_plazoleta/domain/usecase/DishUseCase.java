@@ -9,6 +9,7 @@ import com.plazoleta.microservicio_plazoleta.domain.model.User;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IDishPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
+import com.plazoleta.microservicio_plazoleta.domain.util.PageResult;
 
 import static com.plazoleta.microservicio_plazoleta.domain.usecase.ValidatorUseCase.*;
 import static com.plazoleta.microservicio_plazoleta.domain.util.Constantes.ROLE_OWNER;
@@ -62,6 +63,17 @@ public class DishUseCase implements IDishServicePort {
         validateOwnerAndRestaurant(dishDb.getRestaurantId());
         dishDb.setActive(active);
         dishPersistencePort.updateDish(dishDb);
+    }
+
+    @Override
+    public PageResult<Dish> listDishesByRestaurant(Long restaurantId, Long categoryId, int page, int size) {
+        if (restaurantId == null || restaurantId <= 0) {
+            throw new DomainException(String.format(FIELD_REQUIRED, "Restaurante"));
+        }
+        if (page < 0) page = 0;
+        if (size <= 0) size = 10;
+
+        return dishPersistencePort.findActiveByRestaurantOrderByNameAsc(restaurantId, categoryId, page, size);
     }
 
     private void validateOwnerAndRestaurant(Long restaurantId) {

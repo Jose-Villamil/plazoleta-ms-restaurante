@@ -1,13 +1,7 @@
 package com.plazoleta.microservicio_plazoleta.infrastructure.configuration;
 
-import com.plazoleta.microservicio_plazoleta.domain.api.IAuthServicePort;
-import com.plazoleta.microservicio_plazoleta.domain.api.IDishServicePort;
-import com.plazoleta.microservicio_plazoleta.domain.api.IRestaurantEmployeeServicePort;
-import com.plazoleta.microservicio_plazoleta.domain.api.IRestaurantServicePort;
-import com.plazoleta.microservicio_plazoleta.domain.spi.IDishPersistencePort;
-import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantEmployeePersistencePort;
-import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePort;
-import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
+import com.plazoleta.microservicio_plazoleta.domain.api.*;
+import com.plazoleta.microservicio_plazoleta.domain.spi.*;
 import com.plazoleta.microservicio_plazoleta.domain.usecase.DishUseCase;
 import com.plazoleta.microservicio_plazoleta.domain.usecase.RestaurantEmployeeUseCase;
 import com.plazoleta.microservicio_plazoleta.domain.usecase.RestaurantUseCase;
@@ -80,6 +74,4 @@ public class BeanConfiguration {
     public IRestaurantEmployeePersistencePort restaurantEmployeePersistencePort(){
         return new RestaurantEmployeeJpaAdapter(restaurantEmployeeRepository, restaurantEmployeeMapper);
     }
-
-
 }

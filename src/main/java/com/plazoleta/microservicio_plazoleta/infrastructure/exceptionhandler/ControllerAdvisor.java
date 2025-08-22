@@ -31,7 +31,7 @@ public class ControllerAdvisor {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Collections.singletonMap(Constants.MESSAGE, Constants.ERROR_SERVER));
+                .body(Collections.singletonMap(Constants.MESSAGE, ex.getMessage()));
     }
 
     @ExceptionHandler(FeignException.class)

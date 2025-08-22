@@ -1,6 +1,8 @@
 package com.plazoleta.microservicio_plazoleta.infrastructure.input.rest;
 
 import com.plazoleta.microservicio_plazoleta.application.dto.request.DishRequestDto;
+import com.plazoleta.microservicio_plazoleta.application.dto.response.DishListItemResponseDto;
+import com.plazoleta.microservicio_plazoleta.application.dto.response.PageResponse;
 import com.plazoleta.microservicio_plazoleta.application.handler.impl.DishHandler;
 import com.plazoleta.microservicio_plazoleta.domain.model.Dish;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +44,17 @@ public class DishController {
         dishHandler.setDishActive(id, active);
         String msg = active ? "Plato habilitado" : "Plato deshabilitado";
         return ResponseEntity.ok(Collections.singletonMap(MESSAGE, msg));
+    }
+
+    @GetMapping("listDishes/{restaurantId}")
+    public ResponseEntity<PageResponse<DishListItemResponseDto>> list(
+            @PathVariable Long restaurantId,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10", name = "size") int size
+    ) {
+        var resp = dishHandler.list(restaurantId, categoryId, page, size);
+        return ResponseEntity.ok(resp);
     }
 
 }

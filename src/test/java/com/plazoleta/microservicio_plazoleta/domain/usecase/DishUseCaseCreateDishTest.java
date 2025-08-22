@@ -18,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static com.plazoleta.microservicio_plazoleta.domain.util.Constantes.ROLE_CLIENT;
 import static com.plazoleta.microservicio_plazoleta.domain.util.Constantes.ROLE_OWNER;
 import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.*;
         import static org.junit.jupiter.api.Assertions.*;
