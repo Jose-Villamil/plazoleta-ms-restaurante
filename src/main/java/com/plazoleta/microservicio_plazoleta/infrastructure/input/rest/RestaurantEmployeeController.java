@@ -1,5 +1,6 @@
 package com.plazoleta.microservicio_plazoleta.infrastructure.input.rest;
 
+import com.plazoleta.microservicio_plazoleta.application.dto.request.DeliverOrderRequestDto;
 import com.plazoleta.microservicio_plazoleta.application.dto.request.RestaurantEmployeeRequestDto;
 import com.plazoleta.microservicio_plazoleta.application.dto.response.OrderResponseDto;
 import com.plazoleta.microservicio_plazoleta.application.dto.response.PageResponse;
@@ -49,4 +50,15 @@ public class RestaurantEmployeeController {
         OrderResponseDto dto = employeeOrderHandler.markOrderAsReady(id);
         return ResponseEntity.ok(dto);
     }
+
+
+    @PatchMapping("/{id}/deliver")
+    public ResponseEntity<OrderResponseDto> deliver(
+            @PathVariable Long id,
+            @RequestBody DeliverOrderRequestDto body
+    ) {
+        OrderResponseDto dto = employeeOrderHandler.deliver(id, body.getPin());
+        return ResponseEntity.ok(dto);
+    }
+
 }

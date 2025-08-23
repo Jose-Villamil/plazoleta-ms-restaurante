@@ -123,4 +123,46 @@ public class EmployeeOrderUseCase implements IEmployeeOrderServicePort {
 
         return o;
     }
+
+    @Override
+    public Order deliverOrder(Long orderId, String pin) {
+
+        if (orderId == null || orderId <= 0) {
+            throw new DomainException("El id del pedido es obligatorio");
+        }
+        if (pin == null || pin.isBlank()) {
+            throw new DomainException("El PIN es obligatorio");
+        }
+
+        Order o = orderPersistencePort.findById(orderId)
+                .orElseThrow(() -> new DomainException("Pedido no encontrado"));
+
+        Long employeeId = authServicePort.getAuthenticatedUserId();
+
+        Long restaurantId = restaurantEmployeePersistencePort.findRestaurantIdByEmployeeId(employeeId)
+                .orElseThrow(() -> new DomainException("El empleado no tiene restaurante asociado"));
+        if (!restaurantId.equals(o.getRestaurantId())) {
+            throw new DomainException("No puedes operar pedidos de otro restaurante");
+        }
+
+        if (o.getStatus() != OrderStatus.LISTO) {
+            throw new DomainException("Solo pedidos en estado LISTO pueden ser entregados");
+        }
+
+        if (o.getChefId() == null || !o.getChefId().equals(employeeId)) {
+            throw new DomainException("Solo el empleado asignado puede entregar este pedido");
+        }
+
+        if (!pin.equals(o.getPickupPin())) {
+            throw new DomainException("PIN inválido");
+        }
+
+        o.setStatus(OrderStatus.ENTREGADO);
+        // o.setDeliveredAt(LocalDateTime.now());
+        // (opcional) invalidar PIN
+        // o.setPickupPin(null);
+
+        orderPersistencePort.save(o);
+        return o;
+    }
 }

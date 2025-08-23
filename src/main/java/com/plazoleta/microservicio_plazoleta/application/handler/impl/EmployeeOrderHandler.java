@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,5 +63,22 @@ public class EmployeeOrderHandler implements IEmployeeOrderHandler {
     public OrderResponseDto markOrderAsReady(Long orderId) {
         return employeeOrderResponseMapper.toResponse(employeeOrderServicePort.markOrderAsReady(orderId), Collections.emptyMap());
     }
+
+    @Override
+    public OrderResponseDto deliver(Long orderId, String pin) {
+
+        Order delivered = employeeOrderServicePort.deliverOrder(orderId, pin);
+
+        Set<Long> dishIds = delivered.getItems() == null ? Set.of()
+                : delivered.getItems().stream().map(OrderItem::getDishId).collect(Collectors.toSet());
+
+        Map<Long, Dish> dishesById = dishIds.isEmpty()
+                ? Collections.emptyMap()
+                : dishPersistencePort.findByIds(dishIds);
+
+        return employeeOrderResponseMapper.toResponse(delivered, dishesById);
+    }
+
+
 }
 
