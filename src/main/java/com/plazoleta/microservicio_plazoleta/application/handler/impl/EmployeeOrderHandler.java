@@ -41,5 +41,21 @@ public class EmployeeOrderHandler implements IEmployeeOrderHandler {
 
         return employeeOrderResponseMapper.toPage(pageResult, dishesById);
     }
+
+    @Override
+    public OrderResponseDto assignSelf(Long orderId) {
+        var order = employeeOrderServicePort.assignSelfToOrder(orderId);
+
+        var dishIds = order.getItems().stream()
+                .map(OrderItem::getDishId)
+                .collect(Collectors.toSet());
+
+        Map<Long, Dish> dishesById = dishIds.isEmpty()
+                ? Collections.emptyMap()
+                : dishPersistencePort.findByIds(dishIds);
+
+        return employeeOrderResponseMapper.toResponse(order, dishesById);
+
+    }
 }
 

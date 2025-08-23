@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderHandler orderHandler;
-    private final EmployeeOrderHandler employeeOrderHandler;
 
     @PostMapping
     public ResponseEntity<CreateOrderResponseDto> create(@RequestBody CreateOrderRequestDto request) {
@@ -25,14 +24,5 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 
-    @GetMapping
-    public ResponseEntity<PageResponse<OrderResponseDto>> list(
-            @RequestParam("status") OrderStatus status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10", name = "size") int size
-    ) {
-        var resp = employeeOrderHandler.listByStatus(status, page, size);
-        return ResponseEntity.ok(resp);
-    }
 }
 

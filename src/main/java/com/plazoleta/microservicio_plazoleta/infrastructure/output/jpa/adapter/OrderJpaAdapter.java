@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.util.EnumSet;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class OrderJpaAdapter implements IOrderPersistencePort {
@@ -49,6 +50,11 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
         }).toList();
         return new PageResult<>(items, result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages());
 
+    }
+
+    @Override
+    public Optional<Order> findById(Long id) {
+        return orderRepository.findById(id).map(orderEntityMapper::toOrder);
     }
 }
 

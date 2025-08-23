@@ -6,4 +6,5 @@ import com.plazoleta.microservicio_plazoleta.domain.util.PageResult;
 
 public interface IEmployeeOrderServicePort {
     PageResult<Order> listOrdersByStatus(OrderStatus status, int page, int size);
+    Order assignSelfToOrder(Long orderId);
 }

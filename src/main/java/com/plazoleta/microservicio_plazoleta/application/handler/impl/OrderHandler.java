@@ -20,8 +20,8 @@ public class OrderHandler implements IOrderHandler {
 
 
     public CreateOrderResponseDto create(CreateOrderRequestDto request) {
-        Order draft = reqMapper.toOrder(request);
-        Order saved = service.saveOrder(draft);
+        Order order = reqMapper.toOrder(request);
+        Order saved = service.saveOrder(order);
         return resMapper.toResponse(saved);
     }
 }

@@ -38,4 +38,34 @@ public class EmployeeOrderUseCase implements IEmployeeOrderServicePort {
 
         return orderPersistencePort.findByRestaurantAndStatus(restaurantId, status, page, size);
     }
+
+    @Override
+    public Order assignSelfToOrder(Long orderId) {
+
+        if (orderId == null || orderId <= 0) {
+            throw new DomainException(String.format(FIELD_REQUIRED, "Id de pedido"));
+        }
+        Long employeeId = authServicePort.getAuthenticatedUserId();
+        Long restaurantId = restaurantEmployeePersistencePort.findRestaurantIdByEmployeeId(employeeId)
+                .orElseThrow(() -> new DomainException("El empleado no tiene restaurante asociado"));
+        Order order = orderPersistencePort.findById(orderId)
+                .orElseThrow(() -> new DomainException("No se encontró el pedido"));
+
+
+        if (!restaurantId.equals(order.getRestaurantId())) {
+            throw new DomainException("No puedes gestionar pedidos de otro restaurante");
+        }
+
+        if (order.getChefId() != null) {
+            throw new DomainException("El pedido ya tiene un empleado asignado");
+        }
+        if (order.getStatus() != OrderStatus.PENDIENTE) {
+            throw new DomainException("Solo se pueden asignar pedidos en estado PENDIENTE");
+        }
+
+        order.setChefId(employeeId);
+        order.setStatus(OrderStatus.EN_PREPARACION);
+
+        return orderPersistencePort.save(order);
+    }
 }
