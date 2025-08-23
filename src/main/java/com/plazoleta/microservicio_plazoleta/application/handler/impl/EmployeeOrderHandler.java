@@ -45,18 +45,9 @@ public class EmployeeOrderHandler implements IEmployeeOrderHandler {
 
     @Override
     public OrderResponseDto assignSelf(Long orderId) {
-        var order = employeeOrderServicePort.assignSelfToOrder(orderId);
-
-        var dishIds = order.getItems().stream()
-                .map(OrderItem::getDishId)
-                .collect(Collectors.toSet());
-
-        Map<Long, Dish> dishesById = dishIds.isEmpty()
-                ? Collections.emptyMap()
-                : dishPersistencePort.findByIds(dishIds);
-
+        Order order = employeeOrderServicePort.assignSelfToOrder(orderId);
+        Map<Long, Dish> dishesById = dishItems(order);
         return employeeOrderResponseMapper.toResponse(order, dishesById);
-
     }
 
     @Override
@@ -66,17 +57,21 @@ public class EmployeeOrderHandler implements IEmployeeOrderHandler {
 
     @Override
     public OrderResponseDto deliver(Long orderId, String pin) {
-
         Order delivered = employeeOrderServicePort.deliverOrder(orderId, pin);
+        Map<Long, Dish> dishesById = dishItems(delivered);
+        return employeeOrderResponseMapper.toResponse(delivered, dishesById);
+    }
 
-        Set<Long> dishIds = delivered.getItems() == null ? Set.of()
-                : delivered.getItems().stream().map(OrderItem::getDishId).collect(Collectors.toSet());
+    private Map<Long, Dish>  dishItems(Order order){
+        Set<Long> dishIds = order.getItems() == null ? Set.of()
+                : order.getItems()
+                .stream()
+                .map(OrderItem::getDishId)
+                .collect(Collectors.toSet());
 
-        Map<Long, Dish> dishesById = dishIds.isEmpty()
+        return dishIds.isEmpty()
                 ? Collections.emptyMap()
                 : dishPersistencePort.findByIds(dishIds);
-
-        return employeeOrderResponseMapper.toResponse(delivered, dishesById);
     }
 
 

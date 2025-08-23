@@ -16,19 +16,22 @@ import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.*
 
 public class OrderUseCase implements IOrderServicePort {
 
-    private static final Set<OrderStatus> IN_PROGRESS = Set.of(
-            OrderStatus.PENDIENTE, OrderStatus.EN_PREPARACION, OrderStatus.LISTO
-    );
-
     private final IOrderPersistencePort orderPersistencePort;
     private final IAuthServicePort authServicePort;
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IDishPersistencePort dishPersistencePort;
 
-    public OrderUseCase(IOrderPersistencePort orderPort,
-                        IAuthServicePort authPort,
-                        IRestaurantPersistencePort restaurantPort,
-                        IDishPersistencePort dishPort) {
+    private static final Set<OrderStatus> IN_PROGRESS = Set.of(
+            OrderStatus.PENDIENTE,
+            OrderStatus.EN_PREPARACION,
+            OrderStatus.LISTO
+    );
+
+    public OrderUseCase(
+            IOrderPersistencePort orderPort,
+            IAuthServicePort authPort,
+            IRestaurantPersistencePort restaurantPort,
+            IDishPersistencePort dishPort) {
         this.orderPersistencePort = orderPort;
         this.authServicePort = authPort;
         this.restaurantPersistencePort = restaurantPort;
@@ -81,6 +84,27 @@ public class OrderUseCase implements IOrderServicePort {
         orderResponse.setItems(order.getItems());
         return orderPersistencePort.save(orderResponse);
     }
+
+    @Override
+    public Order cancelOrder(Long orderId) {
+        Long clientId = authServicePort.getAuthenticatedUserId();
+
+        Order o = orderPersistencePort.findById(orderId)
+                .orElseThrow(() -> new DomainException("Pedido no encontrado"));
+
+        if (o.getClientId() == null || !o.getClientId().equals(clientId)) {
+            throw new DomainException("No puedes cancelar un pedido que no te pertenece");
+        }
+
+        if (o.getStatus() != OrderStatus.PENDIENTE) {
+            throw new DomainException("Lo sentimos, tu pedido ya está en preparación y no puede cancelarse");
+        }
+
+        o.setStatus(OrderStatus.CANCELADO);
+
+        return orderPersistencePort.save(o);
+    }
+
 
     private String generatePin() {
         var r = Math.random();

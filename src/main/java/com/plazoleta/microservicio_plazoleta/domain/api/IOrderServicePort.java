@@ -4,4 +4,5 @@ import com.plazoleta.microservicio_plazoleta.domain.model.Order;
 
 public interface IOrderServicePort {
     Order saveOrder(Order order);
+    Order cancelOrder(Long orderId);
 }
