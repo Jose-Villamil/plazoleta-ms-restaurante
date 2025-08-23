@@ -1,6 +1,5 @@
 package com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.adapter;
 
-
 import com.plazoleta.microservicio_plazoleta.domain.model.Order;
 import com.plazoleta.microservicio_plazoleta.domain.model.OrderStatus;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IOrderPersistencePort;
@@ -13,8 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 
 @RequiredArgsConstructor
 public class OrderJpaAdapter implements IOrderPersistencePort {
@@ -32,11 +31,10 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
         return out;
     }
 
+
     @Override
-    public boolean clientHasOpenOrder(Long clientId) {
-        return orderRepository.existsByClientIdAndStatusIn(
-                clientId, EnumSet.of(OrderStatus.PENDIENTE, OrderStatus.EN_PREPARACION, OrderStatus.LISTO)
-        );
+    public boolean existsByClientAndStatuses(Long clientId, Set<OrderStatus> statuses) {
+        return orderRepository.existsByClientIdAndStatusIn(clientId, statuses);
     }
 
     @Override
@@ -56,5 +54,7 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
     public Optional<Order> findById(Long id) {
         return orderRepository.findById(id).map(orderEntityMapper::toOrder);
     }
+
+
 }
 

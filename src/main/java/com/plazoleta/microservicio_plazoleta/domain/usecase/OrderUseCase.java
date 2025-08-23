@@ -10,10 +10,15 @@ import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePo
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Set;
 
 import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.*;
 
 public class OrderUseCase implements IOrderServicePort {
+
+    private static final Set<OrderStatus> IN_PROGRESS = Set.of(
+            OrderStatus.PENDIENTE, OrderStatus.EN_PREPARACION, OrderStatus.LISTO
+    );
 
     private final IOrderPersistencePort orderPersistencePort;
     private final IAuthServicePort authServicePort;
@@ -41,7 +46,7 @@ public class OrderUseCase implements IOrderServicePort {
             throw new DomainException("El pedido debe contener al menos un plato");
         }
 
-        if (orderPersistencePort.clientHasOpenOrder(clientId)) {
+        if (orderPersistencePort.existsByClientAndStatuses(clientId, IN_PROGRESS)) {
             throw new DomainException("Ya tienes un pedido en proceso");
         }
         Restaurant r = restaurantPersistencePort.findRestaurantById(order.getRestaurantId())
@@ -74,7 +79,7 @@ public class OrderUseCase implements IOrderServicePort {
         orderResponse.setCreatedAt(LocalDateTime.now());
         orderResponse.setPickupPin(generatePin());
         orderResponse.setItems(order.getItems());
-        return orderPersistencePort.save(order);
+        return orderPersistencePort.save(orderResponse);
     }
 
     private String generatePin() {

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.*;
@@ -53,6 +54,11 @@ class OrderUseCaseTest {
         return d;
     }
 
+    private static final Set<OrderStatus> IN_PROGRESS = Set.of(
+            OrderStatus.PENDIENTE, OrderStatus.EN_PREPARACION, OrderStatus.LISTO
+    );
+
+
     @Test
     void saveOrder_whenOrderIsNullOrRestaurantMissing_throws() {
         when(authServicePort.getAuthenticatedUserId()).thenReturn(10L);
@@ -83,13 +89,13 @@ class OrderUseCaseTest {
     @Test
     void saveOrder_whenClientHasOpenOrder_throws() {
         when(authServicePort.getAuthenticatedUserId()).thenReturn(10L);
-        when(orderPersistencePort.clientHasOpenOrder(10L)).thenReturn(true);
+        when(orderPersistencePort.existsByClientAndStatuses(10L,IN_PROGRESS)).thenReturn(true);
 
         Order o = order(7L, item(1L, 1));
 
         DomainException ex = assertThrows(DomainException.class, () -> useCase.saveOrder(o));
         assertTrue(ex.getMessage().toLowerCase().contains("proceso"));
-        verify(orderPersistencePort).clientHasOpenOrder(10L);
+        verify(orderPersistencePort).existsByClientAndStatuses(10L,IN_PROGRESS);
         verifyNoMoreInteractions(orderPersistencePort);
         verifyNoInteractions(restaurantPersistencePort, dishPersistencePort);
     }
@@ -97,7 +103,7 @@ class OrderUseCaseTest {
     @Test
     void saveOrder_whenRestaurantNotFound_throws() {
         when(authServicePort.getAuthenticatedUserId()).thenReturn(10L);
-        when(orderPersistencePort.clientHasOpenOrder(10L)).thenReturn(false);
+        when(orderPersistencePort.existsByClientAndStatuses(10L,IN_PROGRESS)).thenReturn(false);
         when(restaurantPersistencePort.findRestaurantById(7L)).thenReturn(Optional.empty());
 
         Order o = order(7L, item(1L, 1));
@@ -113,7 +119,7 @@ class OrderUseCaseTest {
     @Test
     void saveOrder_whenItemDishIdNullOrQtyInvalid_throws() {
         when(authServicePort.getAuthenticatedUserId()).thenReturn(10L);
-        when(orderPersistencePort.clientHasOpenOrder(10L)).thenReturn(false);
+        when(orderPersistencePort.existsByClientAndStatuses(10L,IN_PROGRESS)).thenReturn(false);
         when(restaurantPersistencePort.findRestaurantById(7L)).thenReturn(Optional.of(new Restaurant()));
 
         Order o1 = order(7L, item(null, 1));
@@ -131,7 +137,7 @@ class OrderUseCaseTest {
     @Test
     void saveOrder_whenDuplicateDishes_throws() {
         when(authServicePort.getAuthenticatedUserId()).thenReturn(10L);
-        when(orderPersistencePort.clientHasOpenOrder(10L)).thenReturn(false);
+        when(orderPersistencePort.existsByClientAndStatuses(10L,IN_PROGRESS)).thenReturn(false);
         when(restaurantPersistencePort.findRestaurantById(7L)).thenReturn(Optional.of(new Restaurant()));
         Dish d = activeDish(2L, 7L);
         when(dishPersistencePort.findDishById(2L)).thenReturn(Optional.of(d));
@@ -146,7 +152,7 @@ class OrderUseCaseTest {
     @Test
     void saveOrder_whenDishNotFound_throws() {
         when(authServicePort.getAuthenticatedUserId()).thenReturn(10L);
-        when(orderPersistencePort.clientHasOpenOrder(10L)).thenReturn(false);
+        when(orderPersistencePort.existsByClientAndStatuses(10L,IN_PROGRESS)).thenReturn(false);
         when(restaurantPersistencePort.findRestaurantById(7L)).thenReturn(Optional.of(new Restaurant()));
         when(dishPersistencePort.findDishById(5L)).thenReturn(Optional.empty());
 
@@ -162,7 +168,7 @@ class OrderUseCaseTest {
     @Test
     void saveOrder_whenDishInactive_throws() {
         when(authServicePort.getAuthenticatedUserId()).thenReturn(10L);
-        when(orderPersistencePort.clientHasOpenOrder(10L)).thenReturn(false);
+        when(orderPersistencePort.existsByClientAndStatuses(10L,IN_PROGRESS)).thenReturn(false);
         when(restaurantPersistencePort.findRestaurantById(7L)).thenReturn(Optional.of(new Restaurant()));
 
         Dish inactive = activeDish(3L, 7L);
@@ -181,7 +187,7 @@ class OrderUseCaseTest {
     @Test
     void saveOrder_whenDishFromAnotherRestaurant_throws() {
         when(authServicePort.getAuthenticatedUserId()).thenReturn(10L);
-        when(orderPersistencePort.clientHasOpenOrder(10L)).thenReturn(false);
+        when(orderPersistencePort.existsByClientAndStatuses(10L,IN_PROGRESS)).thenReturn(false);
         when(restaurantPersistencePort.findRestaurantById(7L)).thenReturn(Optional.of(new Restaurant()));
 
         Dish d = activeDish(4L, 9L);
@@ -202,25 +208,25 @@ class OrderUseCaseTest {
         Long restaurantId = 7L;
 
         when(authServicePort.getAuthenticatedUserId()).thenReturn(clientId);
-        when(orderPersistencePort.clientHasOpenOrder(clientId)).thenReturn(false);
+        when(orderPersistencePort.existsByClientAndStatuses(eq(clientId), anySet()))
+                .thenReturn(false);
 
         Restaurant r = new Restaurant();
         r.setId(restaurantId);
-        when(restaurantPersistencePort.findRestaurantById(restaurantId)).thenReturn(Optional.of(r));
+        when(restaurantPersistencePort.findRestaurantById(restaurantId))
+                .thenReturn(Optional.of(r));
 
         when(dishPersistencePort.findDishById(10L)).thenReturn(Optional.of(activeDish(10L, restaurantId)));
         when(dishPersistencePort.findDishById(15L)).thenReturn(Optional.of(activeDish(15L, restaurantId)));
 
         Order input = order(restaurantId, item(10L, 2), item(15L, 1));
 
-        Order saved = new Order();
-        saved.setId(100L);
-        saved.setClientId(clientId);
-        saved.setRestaurantId(restaurantId);
-        saved.setStatus(OrderStatus.PENDIENTE);
-        saved.setItems(input.getItems());
-
-        when(orderPersistencePort.save(input)).thenReturn(saved);
+        when(orderPersistencePort.save(any(Order.class)))
+                .thenAnswer(inv -> {
+                    Order arg = inv.getArgument(0);
+                    arg.setId(100L);
+                    return arg;
+                });
 
         Order out = useCase.saveOrder(input);
 
@@ -232,7 +238,9 @@ class OrderUseCaseTest {
         assertNotNull(out.getItems());
         assertEquals(2, out.getItems().size());
 
-        verify(orderPersistencePort).save(input);
+        verify(orderPersistencePort).save(any(Order.class));
     }
+
+
 }
 

@@ -57,5 +57,10 @@ public class EmployeeOrderHandler implements IEmployeeOrderHandler {
         return employeeOrderResponseMapper.toResponse(order, dishesById);
 
     }
+
+    @Override
+    public OrderResponseDto markOrderAsReady(Long orderId) {
+        return employeeOrderResponseMapper.toResponse(employeeOrderServicePort.markOrderAsReady(orderId), Collections.emptyMap());
+    }
 }
 

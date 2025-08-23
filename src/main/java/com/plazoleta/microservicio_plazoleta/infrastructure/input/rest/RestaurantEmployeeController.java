@@ -43,4 +43,10 @@ public class RestaurantEmployeeController {
     public ResponseEntity<OrderResponseDto> assignSelfOrder(@PathVariable Long orderId) {
         return ResponseEntity.ok(employeeOrderHandler.assignSelf(orderId));
     }
+
+    @PatchMapping("/{id}/ready")
+    public ResponseEntity<OrderResponseDto> markReady(@PathVariable Long id) {
+        OrderResponseDto dto = employeeOrderHandler.markOrderAsReady(id);
+        return ResponseEntity.ok(dto);
+    }
 }

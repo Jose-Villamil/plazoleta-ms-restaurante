@@ -20,3 +20,7 @@ security:
 usuarios:
   service:
     url: http://localhost:8081
+mensajeria:
+  service:
+    url: http://localhost:8083/api/v1/notifications/sms
+  apikey: dev-secret

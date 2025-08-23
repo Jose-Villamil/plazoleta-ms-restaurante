@@ -12,6 +12,7 @@ public final class DomainMessages {
     public static final String RESTAURANT_NOT_FOUND = "No se encontró el restaurante";
     public static final String DISH_NOT_FOUND = "No se encontró el plato";
     public static final String NOT_OWNER_RESTAURANT = "No eres el propietario del restaurante";
+    public static final String EMPLOYEE_WITHOUT_RESTAURANT = "El empleado no tiene restaurante asociado";
 
     public static final String NAME_ONLY_NUMBERS = "El nombre del restaurante no puede contener solo números";
 }

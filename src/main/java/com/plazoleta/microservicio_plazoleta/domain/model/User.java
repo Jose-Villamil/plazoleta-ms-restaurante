@@ -3,6 +3,7 @@ package com.plazoleta.microservicio_plazoleta.domain.model;
 public class User {
     private Long id;
     private Role role;
+    private String phoneNumber;
 
     public User() {}
 
@@ -26,4 +27,9 @@ public class User {
     public void setRole(Role role) {
         this.role = role;
     }
+
+    public String getPhoneNumber() {return  phoneNumber;}
+
+    public void setPhoneNumber(String phoneNumber) {this.phoneNumber = phoneNumber;}
+
 }

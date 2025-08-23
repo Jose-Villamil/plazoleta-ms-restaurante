@@ -4,7 +4,9 @@ import com.plazoleta.microservicio_plazoleta.domain.api.*;
 import com.plazoleta.microservicio_plazoleta.domain.spi.*;
 import com.plazoleta.microservicio_plazoleta.domain.usecase.*;
 import com.plazoleta.microservicio_plazoleta.infrastructure.configuration.security.JwtAuthServiceAdapter;
+import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.adapter.NotificationFeignAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.adapter.UserFeignAdapter;
+import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.client.INotificationFeignClient;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.client.IUserFeignClient;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.mapper.IUserFeignMapper;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.adapter.DishJpaAdapter;
@@ -39,6 +41,8 @@ public class BeanConfiguration {
 
     private final IOrderRepository orderRepository;
     private final IOrderEntityMapper orderEntityMapper;
+
+    private final INotificationFeignClient  notificationFeignClient;
 
     @Bean
     public IRestaurantServicePort restaurantService() {
@@ -91,6 +95,12 @@ public class BeanConfiguration {
 
     @Bean
     public IEmployeeOrderServicePort employeeOrderQueryService() {
-        return new EmployeeOrderUseCase(authServicePort(), restaurantEmployeePersistencePort(), orderPersistencePort());
+        return new EmployeeOrderUseCase(authServicePort(), restaurantEmployeePersistencePort(), orderPersistencePort(), userPersistencePort(),restaurantPersistencePort(),notificationOutPort(notificationFeignClient));
     }
+
+    @Bean
+    public INotificationOutPort notificationOutPort(INotificationFeignClient client) {
+        return new NotificationFeignAdapter(client);
+    }
+
 }
