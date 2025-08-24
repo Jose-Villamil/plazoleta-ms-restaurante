@@ -56,7 +56,6 @@ class SecurityIntegrationTest {
         Mockito.doNothing().when(dishHandler).updateDish(Mockito.any());
     }
 
-
     private String jwt(String email, Long uid, List<String> roles, long minutesValid) {
         long now = System.currentTimeMillis();
         return Jwts.builder()

@@ -113,4 +113,10 @@ public class BeanConfiguration {
     public ITraceLogOutPort traceLogOutPort() {
         return new TraceLogFeignAdapter(traceFeignClient,traceLogFeignMapper);
     }
+
+    @Bean
+    public IOrderAnalyticsServicePort orderAnalyticsServicePort() {
+        return new OrderAnalyticsUseCase(authServicePort(), restaurantPersistencePort(), orderPersistencePort(), traceLogOutPort());
+    }
+
 }
