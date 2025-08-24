@@ -85,7 +85,7 @@ class DishUseCaseUpdateDishTest {
         Dish req = new Dish(); req.setId(1L); req.setDescription("Nueva"); req.setPrice(2300);
 
         DomainException ex = assertThrows(DomainException.class, () -> dishUseCase.updateDish(req));
-        assertEquals(NOT_OWNER_RESTAURANT, ex.getMessage());
+        assertEquals(NOT_RESTAURANT_OWNER, ex.getMessage());
         verify(dishPersistencePort, never()).updateDish(any());
     }
 

@@ -9,7 +9,7 @@ import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantEmployeePersi
 import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePort;
 
 import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.*;
-import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.NOT_OWNER_RESTAURANT;
+import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.NOT_RESTAURANT_OWNER;
 
 public class RestaurantEmployeeUseCase implements IRestaurantEmployeeServicePort {
 
@@ -36,7 +36,7 @@ public class RestaurantEmployeeUseCase implements IRestaurantEmployeeServicePort
                 .orElseThrow(() -> new DomainException(RESTAURANT_NOT_FOUND));
 
         if(!restaurant.getIdOwner().equals(ownerId)){
-            throw new DomainException(NOT_OWNER_RESTAURANT);
+            throw new DomainException(NOT_RESTAURANT_OWNER);
         }
     }
 }

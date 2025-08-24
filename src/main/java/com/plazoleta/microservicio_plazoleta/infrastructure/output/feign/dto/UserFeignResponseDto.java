@@ -11,4 +11,5 @@ public class UserFeignResponseDto {
     private Long id;
     private RoleFeignResponseDto role;
     private String phoneNumber;
+    private String email;
 }

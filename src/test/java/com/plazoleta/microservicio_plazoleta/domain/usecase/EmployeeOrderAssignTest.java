@@ -4,8 +4,11 @@ import com.plazoleta.microservicio_plazoleta.domain.api.IAuthServicePort;
 import com.plazoleta.microservicio_plazoleta.domain.exception.DomainException;
 import com.plazoleta.microservicio_plazoleta.domain.model.Order;
 import com.plazoleta.microservicio_plazoleta.domain.model.OrderStatus;
+import com.plazoleta.microservicio_plazoleta.domain.model.User;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantEmployeePersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IOrderPersistencePort;
+import com.plazoleta.microservicio_plazoleta.domain.spi.ITraceLogOutPort;
+import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -22,6 +25,9 @@ class EmployeeOrderAssignTest {
     @Mock private IAuthServicePort authServicePort;
     @Mock private IRestaurantEmployeePersistencePort restaurantEmployeePersistencePort;
     @Mock private IOrderPersistencePort orderPersistencePort;
+    @Mock private IUserPersistencePort  userPersistencePort;
+    @Mock
+    ITraceLogOutPort traceLogOutPort;
 
     @InjectMocks
     private EmployeeOrderUseCase employeeOrderUseCase;
@@ -63,7 +69,7 @@ class EmployeeOrderAssignTest {
         when(orderPersistencePort.findById(5L)).thenReturn(Optional.empty());
 
         DomainException ex = assertThrows(DomainException.class, () -> employeeOrderUseCase.assignSelfToOrder(5L));
-        assertTrue(ex.getMessage().toLowerCase().contains("no se encontró el pedido"));
+        assertTrue(ex.getMessage().toLowerCase().contains("pedido"));
         verify(orderPersistencePort).findById(5L);
         verify(orderPersistencePort, never()).save(any());
     }
@@ -108,18 +114,43 @@ class EmployeeOrderAssignTest {
 
     @Test
     void happyPath_setsChefAndStatus_andSaves() {
-        when(authServicePort.getAuthenticatedUserId()).thenReturn(30L);
-        when(restaurantEmployeePersistencePort.findRestaurantIdByEmployeeId(30L)).thenReturn(Optional.of(9L));
-        Order order = pendingOrder(5L, 9L);
-        when(orderPersistencePort.findById(5L)).thenReturn(Optional.of(order));
+            Long employeeId = 30L;
+            Long restaurantId = 9L;
+            Long orderId = 5L;
+            Long clientId = 101L;
 
-        when(orderPersistencePort.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+            Order order = pendingOrder(orderId, restaurantId);
+            order.setClientId(clientId);
 
-        Order updated = employeeOrderUseCase.assignSelfToOrder(5L);
+            when(authServicePort.getAuthenticatedUserId()).thenReturn(employeeId);
+            when(authServicePort.getAuthenticatedEmail()).thenReturn("empleado@test.com");
+            when(restaurantEmployeePersistencePort.findRestaurantIdByEmployeeId(employeeId))
+                    .thenReturn(Optional.of(restaurantId));
+            when(orderPersistencePort.findById(orderId)).thenReturn(Optional.of(order));
 
-        assertEquals(30L, updated.getChefId());
-        assertEquals(OrderStatus.EN_PREPARACION, updated.getStatus());
-        verify(orderPersistencePort).save(order);
+            User client = new User();
+            client.setId(clientId);
+            client.setEmail("cliente@test.com");
+            when(userPersistencePort.findById(clientId)).thenReturn(Optional.of(client));
+
+            doNothing().when(traceLogOutPort).recordTrace(any());
+
+            when(orderPersistencePort.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+            Order updated = employeeOrderUseCase.assignSelfToOrder(orderId);
+
+            assertEquals(employeeId, updated.getChefId());
+            assertEquals(OrderStatus.EN_PREPARACION, updated.getStatus());
+
+            verify(orderPersistencePort).save(argThat(o ->
+                    o.getId().equals(orderId)
+                            && o.getRestaurantId().equals(restaurantId)
+                            && o.getChefId().equals(employeeId)
+                            && o.getStatus() == OrderStatus.EN_PREPARACION
+            ));
+
+            verifyNoMoreInteractions(orderPersistencePort, restaurantEmployeePersistencePort,
+                    authServicePort, userPersistencePort, traceLogOutPort);
     }
 }
 

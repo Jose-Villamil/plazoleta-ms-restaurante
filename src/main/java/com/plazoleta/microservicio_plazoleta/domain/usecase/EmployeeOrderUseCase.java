@@ -5,14 +5,17 @@ import com.plazoleta.microservicio_plazoleta.domain.api.IEmployeeOrderServicePor
 import com.plazoleta.microservicio_plazoleta.domain.exception.DomainException;
 import com.plazoleta.microservicio_plazoleta.domain.model.Order;
 import com.plazoleta.microservicio_plazoleta.domain.model.OrderStatus;
+import com.plazoleta.microservicio_plazoleta.domain.model.Tracelog;
+import com.plazoleta.microservicio_plazoleta.domain.model.User;
 import com.plazoleta.microservicio_plazoleta.domain.spi.*;
 import com.plazoleta.microservicio_plazoleta.domain.util.PageResult;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.util.Optional;
 import java.util.logging.Logger;
 
-import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.EMPLOYEE_WITHOUT_RESTAURANT;
-import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.FIELD_REQUIRED;
+import static com.plazoleta.microservicio_plazoleta.domain.util.DomainMessages.*;
 
 public class EmployeeOrderUseCase implements IEmployeeOrderServicePort {
     private final Logger  log = Logger.getLogger(EmployeeOrderUseCase.class.getName());
@@ -22,19 +25,21 @@ public class EmployeeOrderUseCase implements IEmployeeOrderServicePort {
     private final IUserPersistencePort  userPersistencePort;
     private final IRestaurantPersistencePort  restaurantPersistencePort;
     private final INotificationOutPort notificationOutPort;
+    private final ITraceLogOutPort traceLogOutPort;
 
     public EmployeeOrderUseCase(IAuthServicePort authServicePort,
                                      IRestaurantEmployeePersistencePort restaurantEmployeePersistencePort,
                                      IOrderPersistencePort orderPersistencePort,
                                 IUserPersistencePort userPersistencePort,
                                 IRestaurantPersistencePort  restaurantPersistencePort,
-                                INotificationOutPort  notificationOutPort) {
+                                INotificationOutPort  notificationOutPort, ITraceLogOutPort  traceLogOutPort) {
         this.authServicePort = authServicePort;
         this.restaurantEmployeePersistencePort = restaurantEmployeePersistencePort;
         this.orderPersistencePort = orderPersistencePort;
         this.userPersistencePort = userPersistencePort;
         this.restaurantPersistencePort = restaurantPersistencePort;
         this.notificationOutPort = notificationOutPort;
+        this.traceLogOutPort = traceLogOutPort;
     }
 
     @Override
@@ -52,22 +57,22 @@ public class EmployeeOrderUseCase implements IEmployeeOrderServicePort {
     }
 
     @Override
+    @Transactional
     public Order assignSelfToOrder(Long orderId) {
 
         if (orderId == null || orderId <= 0) {
             throw new DomainException(String.format(FIELD_REQUIRED, "Id de pedido"));
         }
+
         Long employeeId = authServicePort.getAuthenticatedUserId();
         Long restaurantId = restaurantEmployeePersistencePort.findRestaurantIdByEmployeeId(employeeId)
                 .orElseThrow(() -> new DomainException(EMPLOYEE_WITHOUT_RESTAURANT));
         Order order = orderPersistencePort.findById(orderId)
-                .orElseThrow(() -> new DomainException("No se encontró el pedido"));
-
+                .orElseThrow(() -> new DomainException(ORDER_NOT_FOUND));
 
         if (!restaurantId.equals(order.getRestaurantId())) {
             throw new DomainException("No puedes gestionar pedidos de otro restaurante");
         }
-
         if (order.getChefId() != null) {
             throw new DomainException("El pedido ya tiene un empleado asignado");
         }
@@ -75,94 +80,164 @@ public class EmployeeOrderUseCase implements IEmployeeOrderServicePort {
             throw new DomainException("Solo se pueden asignar pedidos en estado PENDIENTE");
         }
 
+        String employeeEmail = Optional.ofNullable(authServicePort.getAuthenticatedEmail())
+                .filter(s -> !s.isBlank())
+                .orElseGet(() -> userPersistencePort.findById(employeeId)
+                        .map(User::getEmail)
+                        .orElseThrow(() -> new DomainException("No se pudo obtener el email del empleado")));
+
+        String clientEmail = userPersistencePort.findById(order.getClientId())
+                .map(User::getEmail)
+                .orElseThrow(() -> new DomainException("No se pudo obtener el email del cliente"));
+
+        String oldOrderState = order.getStatus().name();
         order.setChefId(employeeId);
         order.setStatus(OrderStatus.EN_PREPARACION);
 
-        return orderPersistencePort.save(order);
+        Order orderSaved = orderPersistencePort.save(order);
+
+        try {
+            Tracelog trace = new Tracelog(
+                    orderSaved.getId(),
+                    orderSaved.getClientId(),
+                    clientEmail,
+                    employeeId,
+                    employeeEmail,
+                    oldOrderState,
+                    orderSaved.getStatus().name(),
+                    Instant.now());
+
+            traceLogOutPort.recordTrace(trace);
+        }catch (Exception ex){
+            log.warning(ex.getMessage());
+        }
+
+        return orderSaved;
     }
 
+    @Override
+    @Transactional
     public Order markOrderAsReady(Long orderId) {
         Long employeeId = authServicePort.getAuthenticatedUserId();
 
-        Order o = orderPersistencePort.findById(orderId)
+        Order order = orderPersistencePort.findById(orderId)
                 .orElseThrow(() -> new DomainException("Pedido no encontrado"));
 
-        Long restaurantId = restaurantEmployeePersistencePort.findRestaurantIdByEmployeeId(employeeId)
-                .orElseThrow(() -> new DomainException(EMPLOYEE_WITHOUT_RESTAURANT));
-        if (!restaurantId.equals(o.getRestaurantId())) {
-            throw new DomainException("No puedes operar pedidos de otro restaurante");
-        }
-
-        if (o.getStatus() != OrderStatus.EN_PREPARACION) {
+        if (order.getStatus() != OrderStatus.EN_PREPARACION) {
             throw new DomainException("Solo pedidos EN_PREPARACION pueden pasar a LISTO");
         }
-        if (o.getChefId() == null || !o.getChefId().equals(employeeId)) {
+        if (order.getChefId() == null || !order.getChefId().equals(employeeId)) {
             throw new DomainException("Solo el empleado asignado puede marcarlo como LISTO");
         }
 
-        o.setStatus(OrderStatus.LISTO);
-        o.setCreatedAt(LocalDateTime.now());
-        orderPersistencePort.save(o);
+        Long restaurantId = restaurantEmployeePersistencePort.findRestaurantIdByEmployeeId(employeeId)
+                .orElseThrow(() -> new DomainException(EMPLOYEE_WITHOUT_RESTAURANT));
+        if (!restaurantId.equals(order.getRestaurantId())) {
+            throw new DomainException("No puedes operar pedidos de otro restaurante");
+        }
 
-        var client = userPersistencePort.findById(o.getClientId())
-                .orElseThrow(() -> new DomainException("Cliente no encontrado"));
-        String clientPhone = client.getPhoneNumber();
+        String oldOrderState = order.getStatus().name();
+        order.setStatus(OrderStatus.LISTO);
+        Order orderSaved = orderPersistencePort.save(order);
 
-        var restaurant = restaurantPersistencePort.findRestaurantById(o.getRestaurantId())
-                .orElseThrow(() -> new DomainException("Restaurante no encontrado"));
+        var restaurant = restaurantPersistencePort.findRestaurantById(order.getRestaurantId())
+                .orElseThrow(() -> new DomainException(RESTAURANT_NOT_FOUND));
+
+        var client = userPersistencePort.findById(order.getClientId())
+                .orElseThrow(() -> new DomainException(CLIENT_NOT_FOUND));
+
+        String employeeEmail = Optional.ofNullable(authServicePort.getAuthenticatedEmail())
+                .filter(s -> !s.isBlank())
+                .orElseGet(() -> userPersistencePort.findById(employeeId)
+                        .map(User::getEmail)
+                        .orElseThrow(() -> new DomainException(EMPLOYEE_EMAIL_NOT_FOUND)));
 
         try {
             notificationOutPort.sendOrderReady(
-                    o.getId(), clientPhone, o.getPickupPin(),
+                    orderSaved.getId(), client.getPhoneNumber(), orderSaved.getPickupPin(),
                     restaurant.getId(), restaurant.getName()
             );
+            Tracelog trace = new Tracelog(
+                    orderSaved.getId(),
+                    orderSaved.getClientId(),
+                    client.getEmail(),
+                    employeeId,
+                    employeeEmail,
+                    oldOrderState,
+                    OrderStatus.LISTO.name(),
+                    Instant.now());
+
+            traceLogOutPort.recordTrace(trace);
         } catch (Exception ex) {
             //reintento asíncrono (outbox/evento) sin romper el flujo del pedido
-            log.warning("Fallo enviando SMS de pedido listo" + ex.getMessage());
+            log.warning(ex.getMessage());
         }
 
-        return o;
+        return orderSaved;
     }
 
     @Override
     public Order deliverOrder(Long orderId, String pin) {
 
         if (orderId == null || orderId <= 0) {
-            throw new DomainException("El id del pedido es obligatorio");
+            throw new DomainException(String.format(FIELD_REQUIRED,"orderId"));
         }
         if (pin == null || pin.isBlank()) {
             throw new DomainException("El PIN es obligatorio");
         }
 
-        Order o = orderPersistencePort.findById(orderId)
-                .orElseThrow(() -> new DomainException("Pedido no encontrado"));
+        Order order = orderPersistencePort.findById(orderId)
+                .orElseThrow(() -> new DomainException(ORDER_NOT_FOUND));
 
         Long employeeId = authServicePort.getAuthenticatedUserId();
 
         Long restaurantId = restaurantEmployeePersistencePort.findRestaurantIdByEmployeeId(employeeId)
-                .orElseThrow(() -> new DomainException("El empleado no tiene restaurante asociado"));
-        if (!restaurantId.equals(o.getRestaurantId())) {
+                .orElseThrow(() -> new DomainException(EMPLOYEE_WITHOUT_RESTAURANT));
+        if (!restaurantId.equals(order.getRestaurantId())) {
             throw new DomainException("No puedes operar pedidos de otro restaurante");
         }
 
-        if (o.getStatus() != OrderStatus.LISTO) {
+        if (order.getStatus() != OrderStatus.LISTO) {
             throw new DomainException("Solo pedidos en estado LISTO pueden ser entregados");
         }
 
-        if (o.getChefId() == null || !o.getChefId().equals(employeeId)) {
+        if (order.getChefId() == null || !order.getChefId().equals(employeeId)) {
             throw new DomainException("Solo el empleado asignado puede entregar este pedido");
         }
 
-        if (!pin.equals(o.getPickupPin())) {
-            throw new DomainException("PIN inválido");
+        if (!pin.equals(order.getPickupPin())) {
+            throw new DomainException(String.format(FIELD_INVALID, "PIN"));
         }
+        var client = userPersistencePort.findById(order.getClientId())
+                .orElseThrow(() -> new DomainException(CLIENT_NOT_FOUND));
 
-        o.setStatus(OrderStatus.ENTREGADO);
-        // o.setDeliveredAt(LocalDateTime.now());
-        // (opcional) invalidar PIN
-        // o.setPickupPin(null);
+        String employeeEmail = Optional.ofNullable(authServicePort.getAuthenticatedEmail())
+                .filter(s -> !s.isBlank())
+                .orElseGet(() -> userPersistencePort.findById(employeeId)
+                        .map(User::getEmail)
+                        .orElseThrow(() -> new DomainException(EMPLOYEE_EMAIL_NOT_FOUND)));
 
-        orderPersistencePort.save(o);
-        return o;
+        String oldOrderState = order.getStatus().name();
+        order.setStatus(OrderStatus.ENTREGADO);
+
+        Order orderSaved = orderPersistencePort.save(order);
+
+        try {
+            Tracelog trace = new Tracelog(
+                    orderSaved.getId(),
+                    orderSaved.getClientId(),
+                    client.getEmail(),
+                    employeeId,
+                    employeeEmail,
+                    oldOrderState,
+                    OrderStatus.ENTREGADO.name(),
+                    Instant.now());
+
+            traceLogOutPort.recordTrace(trace);
+        } catch (Exception ex) {
+            //reintento asíncrono (outbox/evento) sin romper el flujo del pedido
+            log.warning(ex.getMessage());
+        }
+        return orderSaved;
     }
 }

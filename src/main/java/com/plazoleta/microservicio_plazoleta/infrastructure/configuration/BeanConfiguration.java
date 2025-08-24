@@ -5,9 +5,12 @@ import com.plazoleta.microservicio_plazoleta.domain.spi.*;
 import com.plazoleta.microservicio_plazoleta.domain.usecase.*;
 import com.plazoleta.microservicio_plazoleta.infrastructure.configuration.security.JwtAuthServiceAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.adapter.NotificationFeignAdapter;
+import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.adapter.TraceLogFeignAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.adapter.UserFeignAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.client.INotificationFeignClient;
+import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.client.ITraceLogFeignClient;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.client.IUserFeignClient;
+import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.mapper.ITraceLogFeignMapper;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.feign.mapper.IUserFeignMapper;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.adapter.DishJpaAdapter;
 import com.plazoleta.microservicio_plazoleta.infrastructure.output.jpa.adapter.OrderJpaAdapter;
@@ -43,6 +46,9 @@ public class BeanConfiguration {
     private final IOrderEntityMapper orderEntityMapper;
 
     private final INotificationFeignClient  notificationFeignClient;
+
+    private final ITraceLogFeignClient traceFeignClient;
+    private final ITraceLogFeignMapper traceLogFeignMapper;
 
     @Bean
     public IRestaurantServicePort restaurantService() {
@@ -85,7 +91,7 @@ public class BeanConfiguration {
 
     @Bean
     public IOrderServicePort orderServicePort() {
-        return new OrderUseCase(orderPersistencePort(), authServicePort(), restaurantPersistencePort(), dishPersistencePort());
+        return new OrderUseCase(orderPersistencePort(), authServicePort(), restaurantPersistencePort(), dishPersistencePort(),traceLogOutPort());
     }
 
     @Bean
@@ -95,7 +101,7 @@ public class BeanConfiguration {
 
     @Bean
     public IEmployeeOrderServicePort employeeOrderQueryService() {
-        return new EmployeeOrderUseCase(authServicePort(), restaurantEmployeePersistencePort(), orderPersistencePort(), userPersistencePort(),restaurantPersistencePort(),notificationOutPort(notificationFeignClient));
+        return new EmployeeOrderUseCase(authServicePort(), restaurantEmployeePersistencePort(), orderPersistencePort(), userPersistencePort(),restaurantPersistencePort(),notificationOutPort(notificationFeignClient),traceLogOutPort());
     }
 
     @Bean
@@ -103,4 +109,8 @@ public class BeanConfiguration {
         return new NotificationFeignAdapter(client);
     }
 
+    @Bean
+    public ITraceLogOutPort traceLogOutPort() {
+        return new TraceLogFeignAdapter(traceFeignClient,traceLogFeignMapper);
+    }
 }

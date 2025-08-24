@@ -29,7 +29,7 @@ public class RestaurantUseCase implements IRestaurantServicePort {
         User owner = userPersistencePort.findById(restaurant.getIdOwner())
                 .orElseThrow(() -> new DomainException(OWNER_NOT_FOUND));
         if(!ROLE_OWNER.equalsIgnoreCase(owner.getRole().getName())){
-            throw new DomainException(String.format(USER_DOESNOT_HAVE_ROL, owner.getRole().getName()));
+            throw new DomainException(String.format(USER_ROLE_NOT_ALLOWED, owner.getRole().getName()));
         }
 
         restaurantPersistencePort.saveRestaurant(restaurant);

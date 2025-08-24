@@ -74,7 +74,7 @@ class OrderUseCaseCancelOrderTest {
         when(orderPort.findById(7L)).thenReturn(Optional.of(db));
 
         when(orderPort.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
-
+        when(authPort.getAuthenticatedEmail()).thenReturn("cliente@test.com");
         Order out = useCase.cancelOrder(7L);
 
         assertEquals(OrderStatus.CANCELADO, out.getStatus());

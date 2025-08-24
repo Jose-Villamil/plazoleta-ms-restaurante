@@ -57,6 +57,8 @@ class EmployeeOrderUseCaseMarkReadyTest {
 
         var rest = new Restaurant(); rest.setId(5L); rest.setName("Mi Restaurante");
         when(restPort.findRestaurantById(5L)).thenReturn(Optional.of(rest));
+        when(auth.getAuthenticatedEmail()).thenReturn("cliente@test.com");
+        when(orderPort.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Order updated = useCase.markOrderAsReady(orderId);
 

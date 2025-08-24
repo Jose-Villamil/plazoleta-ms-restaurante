@@ -54,7 +54,7 @@ public class ValidatorUseCase {
 
     public static void validateNameNotOnlyNumbers(String name) {
         if (ONLY_NUMBERS_PATTERN.matcher(name).matches()) {
-            throw new DomainException(NAME_ONLY_NUMBERS);
+            throw new DomainException(RESTAURANT_NAME_ONLY_NUMBERS);
         }
     }
 

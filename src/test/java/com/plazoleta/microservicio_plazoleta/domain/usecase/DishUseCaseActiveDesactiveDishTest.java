@@ -92,7 +92,7 @@ class DishUseCaseActiveDesactiveDishTest {
         mockRestaurantOwner(10L, 99L);
 
         DomainException ex = assertThrows(DomainException.class, () -> dishUseCase.setDishActive(55L, false));
-        assertEquals(NOT_OWNER_RESTAURANT, ex.getMessage());
+        assertEquals(NOT_RESTAURANT_OWNER, ex.getMessage());
         verify(dishPersistencePort, never()).updateDish(any());
     }
 

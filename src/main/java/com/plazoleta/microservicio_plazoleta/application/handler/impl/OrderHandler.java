@@ -3,10 +3,12 @@ package com.plazoleta.microservicio_plazoleta.application.handler.impl;
 import com.plazoleta.microservicio_plazoleta.application.dto.request.CreateOrderRequestDto;
 import com.plazoleta.microservicio_plazoleta.application.dto.response.CreateOrderResponseDto;
 import com.plazoleta.microservicio_plazoleta.application.dto.response.OrderResponseDto;
+import com.plazoleta.microservicio_plazoleta.application.dto.response.TraceLogResponseDto;
 import com.plazoleta.microservicio_plazoleta.application.handler.IOrderHandler;
 import com.plazoleta.microservicio_plazoleta.application.mapper.IEmployeeOrderResponseMapper;
 import com.plazoleta.microservicio_plazoleta.application.mapper.IOrderRequestMapper;
 import com.plazoleta.microservicio_plazoleta.application.mapper.IOrderResponseMapper;
+import com.plazoleta.microservicio_plazoleta.application.mapper.ITraceLogResponseMapper;
 import com.plazoleta.microservicio_plazoleta.domain.api.IOrderServicePort;
 import com.plazoleta.microservicio_plazoleta.domain.model.Dish;
 import com.plazoleta.microservicio_plazoleta.domain.model.Order;
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,6 +32,7 @@ public class OrderHandler implements IOrderHandler {
     private final IOrderResponseMapper orderResponseMapper;
     private final IEmployeeOrderResponseMapper employeeOrderResponseMapper;
     private final IDishPersistencePort dishPersistencePort;
+    private final ITraceLogResponseMapper traceLogResponseMapper;
 
     public CreateOrderResponseDto create(CreateOrderRequestDto request) {
         Order order = orderRequestMapper.toOrder(request);
@@ -49,6 +53,11 @@ public class OrderHandler implements IOrderHandler {
                 : dishPersistencePort.findByIds(dishIds);
 
         return employeeOrderResponseMapper.toResponse(updated, dishesById);
+    }
+
+    @Override
+    public List<TraceLogResponseDto> getMyOrderTrace(Long orderId) {
+        return traceLogResponseMapper.toDtoList(orderServicePort.getMyOrderTrace(orderId));
     }
 }
 

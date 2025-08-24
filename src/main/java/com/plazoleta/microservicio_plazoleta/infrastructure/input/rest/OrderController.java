@@ -3,10 +3,13 @@ package com.plazoleta.microservicio_plazoleta.infrastructure.input.rest;
 import com.plazoleta.microservicio_plazoleta.application.dto.request.CreateOrderRequestDto;
 import com.plazoleta.microservicio_plazoleta.application.dto.response.CreateOrderResponseDto;
 import com.plazoleta.microservicio_plazoleta.application.dto.response.OrderResponseDto;
+import com.plazoleta.microservicio_plazoleta.application.dto.response.TraceLogResponseDto;
 import com.plazoleta.microservicio_plazoleta.application.handler.impl.OrderHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -25,6 +28,11 @@ public class OrderController {
     public ResponseEntity<OrderResponseDto> cancel(@PathVariable Long id) {
         OrderResponseDto dto = orderHandler.cancel(id);
         return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/{orderId}/trace")
+    public ResponseEntity<List<TraceLogResponseDto>> getMyTrace(@PathVariable Long orderId) {
+        return ResponseEntity.ok(orderHandler.getMyOrderTrace(orderId));
     }
 
 }

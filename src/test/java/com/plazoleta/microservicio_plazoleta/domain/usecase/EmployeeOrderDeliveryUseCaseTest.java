@@ -4,8 +4,11 @@ import com.plazoleta.microservicio_plazoleta.domain.api.IAuthServicePort;
 import com.plazoleta.microservicio_plazoleta.domain.exception.DomainException;
 import com.plazoleta.microservicio_plazoleta.domain.model.Order;
 import com.plazoleta.microservicio_plazoleta.domain.model.OrderStatus;
+import com.plazoleta.microservicio_plazoleta.domain.model.User;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IOrderPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantEmployeePersistencePort;
+import com.plazoleta.microservicio_plazoleta.domain.spi.ITraceLogOutPort;
+import com.plazoleta.microservicio_plazoleta.domain.spi.IUserPersistencePort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -24,6 +27,8 @@ class EmployeeOrderDeliveryUseCaseTest {
     @Mock IAuthServicePort authServicePort;
     @Mock IRestaurantEmployeePersistencePort restaurantEmployeePersistencePort;
     @Mock IOrderPersistencePort orderPersistencePort;
+    @Mock IUserPersistencePort userPersistencePort;
+    @Mock ITraceLogOutPort traceLogOutPort;
 
     @InjectMocks
     EmployeeOrderUseCase useCase;
@@ -45,24 +50,33 @@ class EmployeeOrderDeliveryUseCaseTest {
         Long employeeId = 13L;
         Long restaurantId = 5L;
         Long orderId = 77L;
+        Long clientId = 40L;
         String pin = "123456";
 
         when(authServicePort.getAuthenticatedUserId()).thenReturn(employeeId);
+        when(authServicePort.getAuthenticatedEmail()).thenReturn("empleado@test.com");
         when(restaurantEmployeePersistencePort.findRestaurantIdByEmployeeId(employeeId))
                 .thenReturn(Optional.of(restaurantId));
         when(orderPersistencePort.findById(orderId))
-                .thenReturn(Optional.of(order(orderId, restaurantId, 40L, employeeId, OrderStatus.LISTO, pin)));
+                .thenReturn(Optional.of(order(orderId, restaurantId, clientId, employeeId, OrderStatus.LISTO, pin)));
 
-        when(orderPersistencePort.save(any(Order.class)))
-                .thenAnswer(inv -> inv.getArgument(0));
+        User client = new User();
+        client.setId(clientId);
+        client.setEmail("cliente@test.com");
+        when(userPersistencePort.findById(clientId)).thenReturn(Optional.of(client));
+
+        doNothing().when(traceLogOutPort).recordTrace(any());
+
+        when(orderPersistencePort.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Order out = useCase.deliverOrder(orderId, pin);
 
         assertNotNull(out);
         assertEquals(OrderStatus.ENTREGADO, out.getStatus());
         verify(orderPersistencePort).save(argThat(o ->
-                o.getId().equals(orderId) &&
-                        o.getStatus() == OrderStatus.ENTREGADO));
+                o.getId().equals(orderId) && o.getStatus() == OrderStatus.ENTREGADO));
+
+        verifyNoMoreInteractions(orderPersistencePort, restaurantEmployeePersistencePort, authServicePort, userPersistencePort, traceLogOutPort);
     }
 
     @Test
@@ -76,7 +90,6 @@ class EmployeeOrderDeliveryUseCaseTest {
         verify(orderPersistencePort, never()).save(any());
         verifyNoInteractions(authServicePort, restaurantEmployeePersistencePort);
     }
-
 
     @Test
     void deliver_whenEmployeeHasNoRestaurant_throws() {

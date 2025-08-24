@@ -6,6 +6,7 @@ import com.plazoleta.microservicio_plazoleta.domain.spi.IDishPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IOrderPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.spi.IRestaurantPersistencePort;
 import com.plazoleta.microservicio_plazoleta.domain.api.IAuthServicePort;
+import com.plazoleta.microservicio_plazoleta.domain.spi.ITraceLogOutPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -25,6 +26,7 @@ class OrderUseCaseTest {
     @Mock private IAuthServicePort authServicePort;
     @Mock private IRestaurantPersistencePort restaurantPersistencePort;
     @Mock private IDishPersistencePort dishPersistencePort;
+    @Mock private ITraceLogOutPort traceLogOutPort;
 
     @InjectMocks
     private OrderUseCase useCase;
@@ -208,25 +210,24 @@ class OrderUseCaseTest {
         Long restaurantId = 7L;
 
         when(authServicePort.getAuthenticatedUserId()).thenReturn(clientId);
-        when(orderPersistencePort.existsByClientAndStatuses(eq(clientId), anySet()))
-                .thenReturn(false);
+        when(orderPersistencePort.existsByClientAndStatuses(eq(clientId), anySet())).thenReturn(false);
 
-        Restaurant r = new Restaurant();
-        r.setId(restaurantId);
-        when(restaurantPersistencePort.findRestaurantById(restaurantId))
-                .thenReturn(Optional.of(r));
+        Restaurant r = new Restaurant(); r.setId(restaurantId);
+        when(restaurantPersistencePort.findRestaurantById(restaurantId)).thenReturn(Optional.of(r));
 
         when(dishPersistencePort.findDishById(10L)).thenReturn(Optional.of(activeDish(10L, restaurantId)));
         when(dishPersistencePort.findDishById(15L)).thenReturn(Optional.of(activeDish(15L, restaurantId)));
+        when(authServicePort.getAuthenticatedEmail()).thenReturn("cliente@test.com");
+
+        doNothing().when(traceLogOutPort).recordTrace(any(Tracelog.class));
 
         Order input = order(restaurantId, item(10L, 2), item(15L, 1));
 
-        when(orderPersistencePort.save(any(Order.class)))
-                .thenAnswer(inv -> {
-                    Order arg = inv.getArgument(0);
-                    arg.setId(100L);
-                    return arg;
-                });
+        when(orderPersistencePort.save(any(Order.class))).thenAnswer(inv -> {
+            Order arg = inv.getArgument(0);
+            arg.setId(100L);
+            return arg;
+        });
 
         Order out = useCase.saveOrder(input);
 
@@ -239,8 +240,7 @@ class OrderUseCaseTest {
         assertEquals(2, out.getItems().size());
 
         verify(orderPersistencePort).save(any(Order.class));
+        verify(traceLogOutPort).recordTrace(any(Tracelog.class)); // opcional, asegura que se trazó
     }
-
-
 }
 

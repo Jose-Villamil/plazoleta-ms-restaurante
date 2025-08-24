@@ -1,5 +1,6 @@
 server:
-  port: 8080
+  port: ${PORT_PLAZOLETA}
+
 spring:
   cloud:
     config:
@@ -7,20 +8,28 @@ spring:
   application:
     name: plazoleta-service
   datasource:
-    url: jdbc:mysql://localhost:3306/db_plazoleta
-    username: root
-    password: Password
+    url: ${URL_DB_RESTAURANTES}
+    username: ${USERNAME_DB}
+    password: ${PASSWORD_DB}
   jpa:
     hibernate:
       ddl-auto: update
+
 security:
   jwt:
-    secret: ${JWT_SECRET:clavesecretaparamicroserviciosdeplazoletadedecomidas}
+    secret: ${JWT_SECRET}
     expiration-minutes: 120
+
 usuarios:
   service:
-    url: http://localhost:8081
+    url: ${URL_SERVICE_USER}
+
 mensajeria:
   service:
-    url: http://localhost:8083/api/v1/notifications/sms
-  apikey: dev-secret
+    url: ${URL_SERVICE_MENSAJERIA}
+  apikey: ${API_KEY_MENSAJERIA}
+
+trazabilidad:
+  service:
+    url: ${URL_SERVICE_TRAZABILIDAD}
+  internal-token: ${INTERNAL_TOKEN_TRAZABILIDAD}

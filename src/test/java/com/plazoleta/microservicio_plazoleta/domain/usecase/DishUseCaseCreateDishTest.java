@@ -98,7 +98,7 @@ class DishUseCaseCreateDishTest{
     void should_Fail_When_RestaurantNotFound() {
         mockAuthAndUser(1L, ROLE_OWNER);
         when(restaurantPersistencePort.findRestaurantById(validDish.getRestaurantId()))
-                .thenReturn(Optional.empty()); // <- solo lo que se usa
+                .thenReturn(Optional.empty());
 
         DomainException ex = assertThrows(DomainException.class, () -> dishUseCase.saveDish(validDish));
         assertEquals(RESTAURANT_NOT_FOUND, ex.getMessage());
@@ -110,7 +110,7 @@ class DishUseCaseCreateDishTest{
         mockRestaurantOwnedBy(validDish.getRestaurantId(), 99L);
 
         DomainException ex = assertThrows(DomainException.class, () -> dishUseCase.saveDish(validDish));
-        assertEquals(NOT_OWNER_RESTAURANT, ex.getMessage());
+        assertEquals(NOT_RESTAURANT_OWNER, ex.getMessage());
         verify(dishPersistencePort, never()).saveDish(any());
     }
 

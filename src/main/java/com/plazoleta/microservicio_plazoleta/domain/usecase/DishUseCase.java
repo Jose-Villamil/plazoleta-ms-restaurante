@@ -82,13 +82,13 @@ public class DishUseCase implements IDishServicePort {
                 .orElseThrow(() -> new DomainException(OWNER_NOT_FOUND));
 
         if(!ROLE_OWNER.equalsIgnoreCase(owner.getRole().getName())){
-            throw new DomainException(String.format(USER_DOESNOT_HAVE_ROL, owner.getRole().getName()));
+            throw new DomainException(String.format(USER_ROLE_NOT_ALLOWED, owner.getRole().getName()));
         }
         Restaurant restaurant = restaurantPersistencePort.findRestaurantById(restaurantId)
                 .orElseThrow(() -> new DomainException(RESTAURANT_NOT_FOUND));
 
         if(!restaurant.getIdOwner().equals(owner.getId())){
-            throw new DomainException(NOT_OWNER_RESTAURANT);
+            throw new DomainException(NOT_RESTAURANT_OWNER);
         }
     }
 }
